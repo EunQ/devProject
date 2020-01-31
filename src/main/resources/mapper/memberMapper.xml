@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ssafy.manv.dao.MemberMapper">
+    <select id="getMemList" resultType="com.ssafy.manv.entity.Member">
+        SELECT * FROM `CMEMBER`
+    </select>
+    <select id="login" parameterType="com.ssafy.manv.entity.request.LocalLoginRequest" resultType="com.ssafy.manv.entity.Member">
+    	SELECT * FROM `CMEMBER` WHERE EMAIL = #{id} and PWD = #{pwd}
+    </select>
+    <select id="findByMemberId" parameterType="java.lang.String" resultType="com.ssafy.manv.entity.Member">
+    	SELECT * FROM `CMEMBER` WHERE EMAIL = #{id}
+    </select>
+    <select id="save" parameterType="com.ssafy.manv.entity.Member">
+    	INSERT INTO `CMEMBER` VALUES (#{email}, #{pwd}, #{phone}, #{name}, #{auth}, #{job}, #{birth}, #{token}, #{info})
+    </select>
+</mapper>
