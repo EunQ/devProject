@@ -1,0 +1,42 @@
+{"properties": [
+  {
+    "name": "spring.jwt.secret",
+    "type": "java.lang.String",
+    "description": "A description for 'spring.jwt.secret'"
+  },
+  {
+    "name": "spring.github.redirect",
+    "type": "java.lang.String",
+    "description": "A description for 'spring.github.redirect'"
+  },
+  {
+    "name": "spring.github.url.login",
+    "type": "java.lang.String",
+    "description": "A description for 'spring.github.url.login'"
+  },
+  {
+    "name": "spring.github.url.token",
+    "type": "java.lang.String",
+    "description": "A description for 'spring.github.url.token'"
+  },
+  {
+    "name": "spring.url.base",
+    "type": "java.lang.String",
+    "description": "A description for 'spring.url.base'"
+  },
+  {
+    "name": "spring.github.SecretId",
+    "type": "java.lang.String",
+    "description": "A description for 'spring.github.SecretId'"
+  },
+  {
+    "name": "spring.github.ClientId",
+    "type": "java.lang.String",
+    "description": "A description for 'spring.github.ClientId'"
+  },
+  {
+    "name": "spring.github.url.user",
+    "type": "java.lang.String",
+    "description": "A description for 'spring.github.url.user'"
+  }
+]}
