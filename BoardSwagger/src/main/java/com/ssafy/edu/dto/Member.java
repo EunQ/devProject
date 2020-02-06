@@ -8,7 +8,6 @@ import javax.persistence.PrePersist;
 import javax.persistence.Table;
 
 import org.hibernate.annotations.ColumnDefault;
-import org.springframework.data.annotation.Persistent;
 
 @Entity
 @Table( name = "cmember")
