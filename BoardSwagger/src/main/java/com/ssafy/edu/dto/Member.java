@@ -28,6 +28,8 @@ public class Member implements Serializable{
 	private String info;
 	private String birth;
 	private String github;
+	
+	private String test;
 
 	final static public String USER = "USER";
 	final static public String ADMIN = "ADMIN"; 

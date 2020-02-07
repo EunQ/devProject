@@ -4,9 +4,14 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.annotation.Persistent;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -20,12 +25,11 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.ssafy.edu.dao.MemberRepo;
 import com.ssafy.edu.dto.GithubMember;
 import com.ssafy.edu.dto.MailUtil;
 import com.ssafy.edu.dto.Member;
-import com.ssafy.edu.dto.Order;
 import com.ssafy.edu.help.MemberNumberResult;
+import com.ssafy.edu.jpa.MemberRepo;
 import com.ssafy.edu.response.CommonResponse;
 import com.ssafy.edu.response.LoginResponse;
 import com.ssafy.edu.response.SingleResult;
@@ -43,6 +47,10 @@ import io.swagger.annotations.ApiParam;
 @Api(value = "MemberController", description = "회원")
 @CrossOrigin("*")
 public class MemberController {
+
+	
+	@PersistenceContext
+	private EntityManager em;
 
 	public static final Logger logger = LoggerFactory.getLogger(MemberController.class);
 
@@ -183,9 +191,6 @@ public class MemberController {
 		
 		String token = jwtTokenService.createToken(id, m.getAuth());
 		
-		m.setToken(token);
-		memberRepo.save(m);
-		
 		System.out.println(token + "======" + new Date());
 
 		mnr.setNumber(0);
@@ -257,6 +262,7 @@ public class MemberController {
     public LoginResponse signinByProvider(@ApiParam(value = "소셜 access_token", required = true) @RequestParam String accessToken) {
 
 		//String email  = githubMemberService.getGithubUserPrivateEmail(accessToken).getEmail();
+		logger.info(accessToken);
         GithubMember githubMember = githubMemberService.getGithubUser(accessToken);
         String email = githubMember.getLogin();//github로그인시 login이 member.email(pk)가 된다.
         
@@ -268,6 +274,7 @@ public class MemberController {
         //member 에 있는 token -> accessToken으로 업데이트 해야된다.
         member.setToken(accessToken);
         memberRepo.save(member);
+        memberRepo.flush();
 //        service.changeMemberInfo(member);
         
         LoginResponse res = new LoginResponse(0, "social login success", CommonResponse.SUCC);
@@ -317,10 +324,39 @@ public class MemberController {
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
 	
-	@ApiOperation(value = "회원가입된 유저들", notes = "/api/users 로 회원들의 이메일을 알 수 있다.")
+	@ApiOperation(value = "회원가입된 유저들", notes = "/api/findAllEmail 로 회원들의 이메일을 알 수 있다.")
     @GetMapping(value = "/findAllEmail")
     public ResponseEntity<SingleResult<List<String>>> getFindAllEmail() {
 		logger.info("----getFindAllEmail----  ");
+		List<String> dates = new ArrayList<>();
+		List<Member> users = memberRepo.findAll();
+		for(Member member : users) {
+			dates.add(member.getEmail());
+		}
+		SingleResult<List<String>> res = new SingleResult<>(0, "반한된 유저들", CommonResponse.SUCC);
+		res.setData(dates);
+        return new ResponseEntity<>(res, HttpStatus.OK);
+    }
+	
+	@ApiOperation(value = "회원가입된 유저들", notes = "/api/findAllMember 로 회원들의 정보를 알 수 있다.")
+    @GetMapping(value = "/findAllMember")
+    public ResponseEntity<SingleResult<List<Member>>> findAllMember() {
+		logger.info("----findAllMember----  ");
+		List<String> dates = new ArrayList<>();
+		List<Member> users = memberRepo.findAll();
+		for(Member member : users) {
+			member.setPwd("");
+		}
+		SingleResult<List<Member>> res = new SingleResult<>(0, "반한된 유저들", CommonResponse.SUCC);
+		res.setData(users);
+        return new ResponseEntity<>(res, HttpStatus.OK);
+    }
+	
+	@ApiOperation(value = "test", notes = "/test")
+    @GetMapping(value = "/test")
+    public ResponseEntity<SingleResult<List<String>>> test() {
+		logger.info("----tset----  ");
+		TypedQuery<Member> query =  em.createQuery("select m from Member m", Member.class);
 		List<String> dates = new ArrayList<>();
 		List<Member> users = memberRepo.findAll();
 		for(Member member : users) {

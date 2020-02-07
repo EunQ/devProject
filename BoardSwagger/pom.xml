@@ -51,7 +51,6 @@
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter-api</artifactId>
-			<version>5.5.2</version>
 			<scope>test</scope>
 		</dependency>
 
@@ -120,6 +119,10 @@
 <!-- 			<scope>test</scope> -->
 <!-- 		</dependency> -->
 
+		<dependency>
+	    	<groupId>org.mariadb.jdbc</groupId>
+	    	<artifactId>mariadb-java-client</artifactId>
+		</dependency>
 
 		<!-- spring-data-jpa 설정 -->
 		<dependency>
@@ -131,13 +134,7 @@
 		    <groupId>org.springframework.boot</groupId>
 		    <artifactId>spring-boot-starter-data-jpa</artifactId>
 		</dependency>
-		
-		<dependency>
-	    	<groupId>org.mariadb.jdbc</groupId>
-	    	<artifactId>mariadb-java-client</artifactId>
-		</dependency>
-		
-		
+			
 	</dependencies>
 
 	<build>
@@ -146,6 +143,7 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
+			
 		</plugins>
 	</build>
 

@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
 import com.google.gson.Gson;
-import com.ssafy.edu.dto.AccessTokenRequest;
+import com.ssafy.edu.dto.GithubAccessTokenRespose;
 import com.ssafy.edu.dto.CodeRequest;
 import com.ssafy.edu.dto.Member;
 import com.ssafy.edu.service.GithubMemberService;
@@ -79,7 +79,7 @@ public class AccessController {
 
 	@ApiOperation(value="로그인", notes="이메일로 로그인을 하는 리턴값으로 토큰을 발행")
 	@PostMapping(value = "/github/accessToken")
-	public AccessTokenRequest getGithubAccessToken(	@ApiParam(value = "code 번호", required = true ) @RequestBody CodeRequest codeRequest) {
+	public GithubAccessTokenRespose getGithubAccessToken(	@ApiParam(value = "code 번호", required = true ) @RequestBody CodeRequest codeRequest) {
 		String code = codeRequest.getCode();
 		logger.info("client_id - "+githubClientId);
 		logger.info("client_secret - "+githubSecretid);
@@ -94,7 +94,7 @@ public class AccessController {
             ResponseEntity<String> response = restTemplate.postForEntity("https://github.com/login/oauth/access_token", request, String.class);
             logger.info("response");
             if (response.getStatusCode() == HttpStatus.OK) {
-            	AccessTokenRequest res = new AccessTokenRequest();
+            	GithubAccessTokenRespose res = new GithubAccessTokenRespose();
             	logger.info(response.getBody());
             	Map<String, String> map = getQueryMap(response.getBody());
             	res.setAccess_token(map.get("access_token"));
