@@ -15,6 +15,7 @@ import org.springframework.data.annotation.Persistent;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -91,6 +92,7 @@ public class MemberController {
 
 		//service.addMember(dto);
 		memberRepo.save(dto);
+        memberRepo.flush();
 		
 		return new ResponseEntity<MemberNumberResult>(mnr, HttpStatus.OK);
 	}
@@ -111,7 +113,7 @@ public class MemberController {
 	}
 
 	@ApiOperation(value = "회원탈퇴", notes = "회원탈퇴")
-	@GetMapping(value = "/deleteMember/{email}")
+	@DeleteMapping(value = "/deleteMember/{email}")
 	public ResponseEntity<CommonResponse> deleteMember(@RequestHeader("x-access-token") String accesstoken, @PathVariable String email) throws Exception {
 		//회원탈퇴 부분은 더 봐야됨.
 		logger.info("================deleteMember================\t" + new Date());
@@ -141,6 +143,7 @@ public class MemberController {
 
 		//service.deleteMember(email);
 		memberRepo.delete(m);
+        memberRepo.flush();
 		
 		return new ResponseEntity<>(res, HttpStatus.OK);
 	}
@@ -262,7 +265,6 @@ public class MemberController {
     public LoginResponse signinByProvider(@ApiParam(value = "소셜 access_token", required = true) @RequestParam String accessToken) {
 
 		//String email  = githubMemberService.getGithubUserPrivateEmail(accessToken).getEmail();
-		logger.info(accessToken);
         GithubMember githubMember = githubMemberService.getGithubUser(accessToken);
         String email = githubMember.getLogin();//github로그인시 login이 member.email(pk)가 된다.
         
@@ -270,11 +272,6 @@ public class MemberController {
         if(member == null) {
         	return new LoginResponse(1, "social login fail", "fail");
         }
-        
-        //member 에 있는 token -> accessToken으로 업데이트 해야된다.
-        member.setToken(accessToken);
-        memberRepo.save(member);
-        memberRepo.flush();
 //        service.changeMemberInfo(member);
         
         LoginResponse res = new LoginResponse(0, "social login success", CommonResponse.SUCC);
@@ -298,6 +295,7 @@ public class MemberController {
         member.setGithub(githubMember.getLogin());
         
         memberRepo.save(member);
+        memberRepo.flush();
         
         //service.addMember(member);
         //service.changeMemberInfo(member);
@@ -324,7 +322,7 @@ public class MemberController {
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
 	
-	@ApiOperation(value = "회원가입된 유저들", notes = "/api/findAllEmail 로 회원들의 이메일을 알 수 있다.")
+	@ApiOperation(value = "회원가입된 유저들", notes = "/api/users 로 회원들의 이메일을 알 수 있다.")
     @GetMapping(value = "/findAllEmail")
     public ResponseEntity<SingleResult<List<String>>> getFindAllEmail() {
 		logger.info("----getFindAllEmail----  ");
@@ -342,7 +340,6 @@ public class MemberController {
     @GetMapping(value = "/findAllMember")
     public ResponseEntity<SingleResult<List<Member>>> findAllMember() {
 		logger.info("----findAllMember----  ");
-		List<String> dates = new ArrayList<>();
 		List<Member> users = memberRepo.findAll();
 		for(Member member : users) {
 			member.setPwd("");

@@ -39,14 +39,8 @@ public class Team implements Serializable {
 	@ColumnDefault("RUN")
 	private String teamState; //Run, End
 	
-	@Column(name ="team_leader")
-	private String teamLeader;
-	
 	@Column(name="team_member_num")
 	private int teamMemberNum;
-	
-	@Column(name="board_id")
-	private String boardId;
 	
 	@Column(name="github_repo_url")
 	private String githubRepoUrl;

@@ -19,7 +19,6 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import com.google.gson.Gson;
-import com.ssafy.edu.dto.GithubAccessTokenRespose;
 import com.ssafy.edu.dto.Member;
 import com.ssafy.edu.dto.Repository;
 
@@ -36,7 +35,7 @@ public class RepositoryService {
 	public Repository createRepository(String name,  String githubAccessToken) {
 		Repository repository = new Repository();
 		repository.setName(name);
-		repository.setRprivate(true);
+		repository.setRprivate(false);
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 		headers.set("Authorization", "Bearer " + githubAccessToken);
@@ -83,5 +82,34 @@ public class RepositoryService {
         }
         throw new RuntimeException("github/repo 이상");
 	}
+	public String getRepoNameByUrl(String url) {
+		String[] stringArray = url.split("/");
+		return stringArray[stringArray.length-1];
+	}
 	
+	public boolean addTeamMember(String githubAccessToken,String ownerName,String repoUrl ,String memberGithub) {
+		//PUT 
+		logger.info(githubAccessToken);
+		logger.info(ownerName);
+		logger.info(repoUrl);
+		logger.info(memberGithub);
+		String repoName = getRepoNameByUrl(repoUrl);
+		logger.info("to put - "+ "https://api.github.com/repos/"+ownerName+"/"+repoName+"/collaborators/"+memberGithub);
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+		headers.set("Authorization", "Bearer " + githubAccessToken);
+		try {
+			HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(null, headers);
+			Gson gson = new Gson();
+			///repos/:owner/:repo/collaborators/:username
+            ResponseEntity<String> response = restTemplate.exchange("https://api.github.com/repos/"+ownerName+"/"+repoName+"/collaborators/"+memberGithub, HttpMethod.PUT, request, String.class);
+            if (response.getStatusCode() == HttpStatus.CREATED || response.getStatusCode() ==HttpStatus.OK ) {
+            	logger.info("add github collaborators");
+            	return true;
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("service addTeamMember 이상");
+        }
+        return false;
+	}
 }

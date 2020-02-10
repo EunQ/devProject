@@ -17,15 +17,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.ssafy.edu.dto.GithubAccessTokenRespose;
 import com.ssafy.edu.dto.Member;
 import com.ssafy.edu.dto.Repository;
 import com.ssafy.edu.dto.Team;
 import com.ssafy.edu.jpa.MemberRepo;
 import com.ssafy.edu.jpa.TeamRepo;
-import com.ssafy.edu.dto.ApplyAsLeaderRequest;
+import com.ssafy.edu.request.AddTeamMemberRequest;
+import com.ssafy.edu.request.ApplyAsLeaderRequest;
 import com.ssafy.edu.dto.CodeRequest;
 import com.ssafy.edu.response.CommonResponse;
+import com.ssafy.edu.response.GithubAccessTokenRespose;
 import com.ssafy.edu.response.SingleResult;
 import com.ssafy.edu.service.JwtTokenService;
 import com.ssafy.edu.service.RepositoryService;
@@ -34,7 +35,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 
-@Api(tags = {"Team관련 Controller Team에 관련된 정보와 Github Repository부문을 담당한다."})
+@Api(tags = {"Team관련 Controller Team에 관련된 정보와 팀장으로서 등록, 팀원으로서 등록부분을 담당"})
 @RestController
 @RequestMapping(value="/api/team")
 @CrossOrigin("*")
@@ -80,8 +81,8 @@ public class TeamController {
 	}
 	
 	@ApiOperation(value="팀장으로 공모전에 지원할시", notes="리턴 값으로 succ, fail을 출력한다.")
-	@PostMapping(value = "/ApplyAsLeader")
-	public ResponseEntity<SingleResult<String>> ApplyAsLeader(@ApiParam(value = "저장소 이름, 백엔드 토큰, 공모전 아이디", required = true) @RequestBody ApplyAsLeaderRequest applyRequest){
+	@PostMapping(value = "/applyAsLeader")
+	public ResponseEntity<SingleResult<String>> applyAsLeader(@ApiParam(value = "github 저장소 이름, 백엔드 토큰, 공모전 아이디", required = true) @RequestBody ApplyAsLeaderRequest applyRequest){
 		if(applyRequest.getBoard_id() == null  || applyRequest.getGithub_repo_name() == null 
 				|| !jwtTokenService.validateToken( applyRequest.getAccess_token())) {
 			//board_id나 repo_name이 null이거나 유효하지 않는 토큰이면 request가 올바르지 않다고. 
@@ -116,4 +117,39 @@ public class TeamController {
 		res.setData(repository.getHtml_url());
 		return new ResponseEntity<SingleResult<String>>(res, HttpStatus.OK);
 	}
+	
+	@ApiOperation(value="팀장일때 Member를 팀원으로 등록하고자 할때", notes="리턴 값으로 succ, fail을 출력한다.")
+	@PostMapping(value = "/addTeamMember")
+	public ResponseEntity<CommonResponse> addTeamMember(@ApiParam(value = "백엔드 토큰,추가하고자 할 team id ,추가하고자 할 member email", required = true) @RequestBody AddTeamMemberRequest addTeamMemberRequest){
+		logger.info(addTeamMemberRequest.toString());
+		String accessToken = addTeamMemberRequest.getAccessToken();
+		if(!jwtTokenService.validateToken(accessToken)) {
+			new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+		String email = jwtTokenService.getUserPk(accessToken);
+		Member owner = memberRepo.findByEmail(email).orElse(null);
+		logger.info(owner.toString());
+		
+		if(owner.getGithub() == null) {
+			return new ResponseEntity<>(new CommonResponse(-1,"github 등록을 먼저", CommonResponse.FAIL), HttpStatus.OK);
+		}
+		
+		//team_id와 member_email는 유효하다고 가정하자.
+		Team team = teamRepo.findById(addTeamMemberRequest.getTeamId()).orElse(null);
+		
+		if(team == null) {
+			return new ResponseEntity<>(new CommonResponse(-1,"team 등록을 먼저", CommonResponse.FAIL), HttpStatus.OK);
+		}
+		
+		boolean isAddedMember = repositoryService.addTeamMember(owner.getToken(), owner.getGithub(), team.getGithubRepoUrl(), addTeamMemberRequest.getMemberEmail());
+		if(!isAddedMember) {
+			return new ResponseEntity<>(new CommonResponse(-1,"유저를 팀에 추가할 수 없습니다.", CommonResponse.FAIL), HttpStatus.OK);
+		}
+		else {
+			return new ResponseEntity<>(new CommonResponse(0,"github Repository에 추가되었습니다.", CommonResponse.SUCC), HttpStatus.OK);
+		}
+	}
+
+	
+
 }

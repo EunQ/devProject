@@ -1,48 +1,30 @@
 package com.ssafy.edu.dto;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+@Entity
+@Table(name = "apply")
 public class Apply {
-	private int apply_id;
-	private String apply_date;
-	private String email;
 	
-	public Apply() {
-		super();
-		// TODO Auto-generated constructor stub
-	}
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "apply_id")
+	private int applyId;
+	
+	@Column(name = "team_id")
+	private int teamId;
+	
+	@Column(name = "apply_date")
+	private String applyDate;
 
-	public Apply(int apply_id, String apply_date, String email) {
-		super();
-		this.apply_id = apply_id;
-		this.apply_date = apply_date;
-		this.email = email;
-	}
+	@Column(name = "board_id")
+	private int boardId;
 
-	@Override
-	public String toString() {
-		return "Apply [apply_id=" + apply_id + ", apply_date=" + apply_date + ", email=" + email + "]";
-	}
-
-	public int getApply_id() {
-		return apply_id;
-	}
-
-	public void setApply_id(int apply_id) {
-		this.apply_id = apply_id;
-	}
-
-	public String getApply_date() {
-		return apply_date;
-	}
-
-	public void setApply_date(String apply_date) {
-		this.apply_date = apply_date;
-	}
-
-	public String getEmail() {
-		return email;
-	}
-
-	public void setEmail(String email) {
-		this.email = email;
-	}
+	@Column(name = "apply_info")
+	private String applyInfo;
 }

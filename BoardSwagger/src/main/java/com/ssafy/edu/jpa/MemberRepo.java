@@ -10,7 +10,7 @@ import org.springframework.stereotype.Repository;
 import com.ssafy.edu.dto.Member;
 
 @Repository
-public interface MemberRepo extends JpaRepository<Member, Integer> {
+public interface MemberRepo extends JpaRepository<Member, String> {
 	Optional<Member> findByEmail(String email);
 	List<Member> findAll();
 	/*
