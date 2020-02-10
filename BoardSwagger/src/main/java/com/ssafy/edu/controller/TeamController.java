@@ -164,6 +164,48 @@ public class TeamController {
 		}
 	}
 
+	@ApiOperation(value="팀장일때 Member를 추가하는 부분", notes="리턴 값으로 succ, fail을 출력한다.")
+	@PostMapping(value = "/intoTeam/{teamId}/{email}")
+	public ResponseEntity<CommonResponse> intoTeam(@ApiParam(value = "back-end access token", required = true) @RequestHeader("x-access-token") String accessToken,
+			@ApiParam(value = "등록하고자하는 Team Id", required = true) @PathVariable String teamId, @ApiParam(value = "등록하고자하는 Member email", required = true) @PathVariable String email) {
+		if(!jwtTokenService.validateToken(accessToken)) {
+			return new ResponseEntity<>(new CommonResponse(-1,"유효하지 않는 access-token", CommonResponse.FAIL), HttpStatus.BAD_REQUEST);
+		}
+		String leaderEmail = jwtTokenService.getUserPk(accessToken);
+		TeamMember tm = teamMemberRepo.findByEmail(leaderEmail);
+		if(tm == null || !tm.isLeader() ) {
+			return new ResponseEntity<>(new CommonResponse(-1,"올바르지 않는 Leader, 팀이 잘못되었거나 팀장이 아님", CommonResponse.FAIL), HttpStatus.BAD_REQUEST);
+		}
+		teamMemberRepo.save(new TeamMember())
+		return new ResponseEntity<>(new CommonResponse(0,"into Team succ", CommonResponse.SUCC), HttpStatus.OK);
+	}
 	
 
+	@ApiOperation(value="팀장일때 Member를 제거하는 부분", notes="리턴 값으로 succ, fail을 출력한다.")
+	@PostMapping(value = "/outTeam/{email}")
+	public ResponseEntity<CommonResponse> intoTeam(){
+		
+		return new ResponseEntity<>(new CommonResponse(0,"into Team succ", CommonResponse.SUCC), HttpStatus.OK);
+	}
+	
+	//applyToBoard
+	@ApiOperation(value="팀장일때 Member를 추가하는 부분", notes="리턴 값으로 succ, fail을 출력한다.")
+	@PostMapping(value = "/applyToBoard/{teamId}/{boardId}")
+	public ResponseEntity<CommonResponse> applyToBoard(@ApiParam(value = "back-end access token", required = true) @RequestHeader("x-access-token") String accessToken,
+			@ApiParam(value = "등록하고자하는 Team Id", required = true) @PathVariable String teamId, @ApiParam(value = "등록하고자하는 공모전 Id", required = true) @PathVariable String boardId) {
+		if(!jwtTokenService.validateToken(accessToken)) {
+			return new ResponseEntity<>(new CommonResponse(-1,"유효하지 않는 access-token", CommonResponse.FAIL), HttpStatus.BAD_REQUEST);
+		}
+		String leaderEmail = jwtTokenService.getUserPk(accessToken);
+		TeamMember tm = teamMemberRepo.findByEmail(leaderEmail);
+		if(tm == null || !tm.isLeader() ) {
+			return new ResponseEntity<>(new CommonResponse(-1,"올바르지 않는 Leader, 팀이 잘못되었거나 팀장이 아님", CommonResponse.FAIL), HttpStatus.BAD_REQUEST);
+		}
+		
+		//여기에 applyRepo.save(...)
+		//teamMemberRepo.save(new TeamMember())
+		return new ResponseEntity<>(new CommonResponse(0,"into Team succ", CommonResponse.SUCC), HttpStatus.OK);
+	}
+	
+	
 }
