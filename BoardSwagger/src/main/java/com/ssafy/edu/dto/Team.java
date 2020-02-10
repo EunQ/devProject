@@ -44,4 +44,7 @@ public class Team implements Serializable {
 	
 	@Column(name="github_repo_url")
 	private String githubRepoUrl;
+	
+	@Column(name="team_name")
+	private String teamName;
 }

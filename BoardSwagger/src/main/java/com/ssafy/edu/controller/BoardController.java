@@ -300,48 +300,49 @@ public class BoardController {
 		return new ResponseEntity<BoardNumberResult>(bnr, HttpStatus.OK);
 	}
 
-	@ApiOperation(value = "참가하기", notes = "board_id(int), email(String)만 넣으면 됨", response = BoardNumberResult.class)
-	@RequestMapping(value = "/applyBoard", method = RequestMethod.POST)
-	public ResponseEntity<BoardNumberResult> applyBoard(@RequestBody Apply_board dto) throws Exception {
-		System.out.println("================applyBoard================\t" + new Date());
-
-		BoardNumberResult bnr = new BoardNumberResult();
-
-		int bid = dto.getBoard_id();
-
-		Board b = service.getBoardByID(bid);
-		int total_people = b.getPeople_num();
-		int now_people = b.getPeople_now();
-
-		bnr.setName("applyBoard");
-		bnr.setNumber(now_people);
-
-		if (total_people <= now_people) {
-			bnr.setState("fail");
-			return new ResponseEntity<BoardNumberResult>(bnr, HttpStatus.BAD_REQUEST);
-		}
-		SimpleDateFormat dateformat = new SimpleDateFormat("yyyyMMdd");
-		String now = dateformat.format(new Date());
-
-		Apply apl = new Apply();
-		apl.setApply_date(now);
-		apl.setEmail(dto.getEmail());
-		service.addApply(apl);
-
-		int aid = service.getBoardId(); // AI된 Apply_id 값
-
-		Apply_board ab = new Apply_board();
-		ab.setApply_id(aid);
-		ab.setBoard_id(bid);
-		ab.setEmail(dto.getEmail());
-		service.addApplyBoard(ab);
-
-		now_people += 1;
-		b.setPeople_now(now_people);
-		service.updateBoard(b);
-
-		return new ResponseEntity<BoardNumberResult>(bnr, HttpStatus.OK);
-	}
+	
+//	@ApiOperation(value = "참가하기", notes = "board_id(int), email(String)만 넣으면 됨", response = BoardNumberResult.class)
+//	@RequestMapping(value = "/applyBoard", method = RequestMethod.POST)
+//	public ResponseEntity<BoardNumberResult> applyBoard(@RequestBody Apply_board dto) throws Exception {
+//		System.out.println("================applyBoard================\t" + new Date());
+//
+//		BoardNumberResult bnr = new BoardNumberResult();
+//
+//		int bid = dto.getBoard_id();
+//
+//		Board b = service.getBoardByID(bid);
+//		int total_people = b.getPeople_num();
+//		int now_people = b.getPeople_now();
+//
+//		bnr.setName("applyBoard");
+//		bnr.setNumber(now_people);
+//
+//		if (total_people <= now_people) {
+//			bnr.setState("fail");
+//			return new ResponseEntity<BoardNumberResult>(bnr, HttpStatus.BAD_REQUEST);
+//		}
+//		SimpleDateFormat dateformat = new SimpleDateFormat("yyyyMMdd");
+//		String now = dateformat.format(new Date());
+//
+//		Apply apl = new Apply();
+//		apl.setApply_date(now);
+//		apl.setEmail(dto.getEmail());
+//		service.addApply(apl);
+//
+//		int aid = service.getBoardId(); // AI된 Apply_id 값
+//
+//		Apply_board ab = new Apply_board();
+//		ab.setApply_id(aid);
+//		ab.setBoard_id(bid);
+//		ab.setEmail(dto.getEmail());
+//		service.addApplyBoard(ab);
+//
+//		now_people += 1;
+//		b.setPeople_now(now_people);
+//		service.updateBoard(b);
+//
+//		return new ResponseEntity<BoardNumberResult>(bnr, HttpStatus.OK);
+//	}
 
 	@ApiOperation(value = "게시글 검색(제목)", response = List.class)
 	@RequestMapping(value = "/searchBoardByTitle/{keyword}", method = RequestMethod.GET)

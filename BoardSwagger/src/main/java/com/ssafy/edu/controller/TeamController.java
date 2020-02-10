@@ -1,6 +1,8 @@
 package com.ssafy.edu.controller;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +22,9 @@ import org.springframework.web.bind.annotation.RestController;
 import com.ssafy.edu.dto.Member;
 import com.ssafy.edu.dto.Repository;
 import com.ssafy.edu.dto.Team;
+import com.ssafy.edu.dto.TeamMember;
 import com.ssafy.edu.jpa.MemberRepo;
+import com.ssafy.edu.jpa.TeamMemberRepo;
 import com.ssafy.edu.jpa.TeamRepo;
 import com.ssafy.edu.request.AddTeamMemberRequest;
 import com.ssafy.edu.request.ApplyAsLeaderRequest;
@@ -59,7 +63,19 @@ public class TeamController {
 	TeamRepo teamRepo;
 	
 	@Autowired
+	TeamMemberRepo teamMemberRepo;
+	
+	@Autowired
 	RepositoryService repositoryService;
+
+	@ApiOperation(value="자신이 속한 팀들 전부 표시", notes="리턴 값으로 succ, fail을 출력한다.")
+	@GetMapping(value = "/teams")
+	public List<Team> findAllTeamByEmail(@ApiParam(value = "back-end access token", required = true) @RequestHeader("x-access-token") String accessToken) {
+		//validate하고
+		String email = jwtTokenService.getUserPk(accessToken);
+		List<Team> lists = teamRepo.findAllTeamByEmail(email);
+		return lists;
+	}
 	
 	@ApiOperation(value="팀장으로 공모전에 지원할시 헤더에는 back end에서 발행한 토큰을 이용", notes="리턴 값으로 succ, fail을 출력한다.")
 	@GetMapping(value = "/checkRepositoryName/{repoName}")
@@ -103,11 +119,9 @@ public class TeamController {
 		//여기까지 Repository 생성.
 		
 		Team team = new Team();
-		team.setBoardId(applyRequest.getBoard_id());
 		SimpleDateFormat dateFomat = new SimpleDateFormat ( "yyyy-MM-dd");
 		team.setTeamDate(dateFomat.format(System.currentTimeMillis()));
 		team.setTeamState(Team.STATE_RUN);
-		team.setTeamLeader(leader.getEmail());
 		team.setTeamMemberNum(1);
 		team.setGithubRepoUrl(repository.getHtml_url());
 		teamRepo.save(team);
