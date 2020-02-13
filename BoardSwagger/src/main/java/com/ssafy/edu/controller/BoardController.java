@@ -42,9 +42,6 @@ import io.swagger.annotations.ApiOperation;
 public class BoardController {
 
 	public static final Logger logger = LoggerFactory.getLogger(BoardController.class);
-
-	private String awsSaveFolder = "/home/ubuntu/image/";
-	private String awsUrl = "http://13.209.18.235:8197/image/";
 	
 	@Autowired
 	private BoardRepo boardRepo;
@@ -54,6 +51,10 @@ public class BoardController {
 	
 	@Autowired
 	private PostRepo postRepo;
+	
+
+	private final String awsSaveFolder = "/home/ubuntu/image/";
+	private final String awsUrl = "http://13.209.18.235:8197/image/";
 
 	@ApiOperation(value = "모든 게시판 정보를 가져온다.", response = List.class)
 	@RequestMapping(value = "/getBoard", method = RequestMethod.GET)
