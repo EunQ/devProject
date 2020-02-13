@@ -43,6 +43,9 @@ public class BoardController {
 
 	public static final Logger logger = LoggerFactory.getLogger(BoardController.class);
 
+	private String awsSaveFolder = "/home/ubuntu/image/";
+	private String awsUrl = "http://13.209.18.235:8197/image/";
+	
 	@Autowired
 	private BoardRepo boardRepo;
 
@@ -100,8 +103,9 @@ public class BoardController {
 			String filenameExtension = FilenameUtils.getExtension(filename).toLowerCase();
 			File destinationFile;
 			String destinationFileName;
-			String fileUrl = "C:/BoardSwagger/BoardSwagger/src/main/resources/static/image/";
-
+			//String fileUrl = "C:/BoardSwagger/BoardSwagger/src/main/resources/static/image/";
+			String fileUrl = awsSaveFolder;
+			
 			SimpleDateFormat timeformat = new SimpleDateFormat("yyMMddHHmmss");
 			destinationFileName = timeformat.format(new Date()) + "." + filenameExtension;
 			destinationFile = new File(fileUrl + destinationFileName);
@@ -109,7 +113,8 @@ public class BoardController {
 			System.out.println("File : " + destinationFileName + "======" + new Date());
 
 			file.transferTo(destinationFile);
-			String saveUrl = "http://192.168.31.122:8197/image/";
+			//String saveUrl = "http://192.168.31.122:8197/image/";
+			String saveUrl = awsUrl;
 			board.setImg(saveUrl + destinationFileName);
 		} else {
 			board.setImg("none");

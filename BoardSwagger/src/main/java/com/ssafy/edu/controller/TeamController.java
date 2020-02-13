@@ -44,6 +44,7 @@ import com.ssafy.edu.jpa.TeamRepo;
 import com.ssafy.edu.request.AddTeamMemberRequest;
 import com.ssafy.edu.request.ApplyAsLeaderRequest;
 import com.ssafy.edu.request.ApplyBoardRequest;
+import com.ssafy.edu.request.CreateTeamRequest;
 import com.ssafy.edu.response.CommonResponse;
 import com.ssafy.edu.response.SingleResult;
 import com.ssafy.edu.service.JwtTokenService;
@@ -104,6 +105,55 @@ public class TeamController {
 		}
 		return new ResponseEntity<CommonResponse>(new CommonResponse(0, "checkRepositoryName", CommonResponse.SUCC), HttpStatus.OK);
 	}
+	
+
+	@ApiOperation(value="팀을 만들때", notes="리턴 값으로 succ, fail을 출력한다.")
+	@PostMapping(value = "/create")
+	public ResponseEntity<SingleResult<Team>> unifyCreateTeam(@ApiParam(value = "back-end access token", required = true) @RequestHeader("x-access-token") String accessToken,
+			 @ApiParam(value = "만들고자 하는 TeamName", required = true) @RequestBody CreateTeamRequest request){
+		logger.info("unifyCreateTeam " + request.toString()); 
+		if(!jwtTokenService.validateToken(accessToken)) {
+			//board_id나 repo_name이 null이거나 유효하지 않는 토큰이면 request가 올바르지 않다고. 
+			return SingleResult.makeResponseEntity(-1, "token 이 유효하지 않음.", CommonResponse.FAIL, null,HttpStatus.BAD_REQUEST);
+		}
+		String leaderEmail = jwtTokenService.getUserPk(accessToken);
+		Member leader = memberRepo.findByEmail(leaderEmail).orElse(null);
+		if(leader == null) {
+			//유저에 대한 정보가 없으면.
+			return SingleResult.makeResponseEntity(-1, "token email이 존재하지 않음", CommonResponse.FAIL, null, HttpStatus.BAD_REQUEST);
+		}
+		logger.info("Github Token : " + leader.getToken());
+		//이때까지 토큰이 올바르고, 회원이 존재하는 경우.
+		Team newTeam = new Team();
+		SimpleDateFormat fomat = new SimpleDateFormat("yyyy-MM-dd");
+		newTeam.setTeamDate(fomat.format(new Date()));
+		newTeam.setTeamMemberNum(1);
+		newTeam.setTeamName(request.getTeamName());
+		newTeam.setTeamState(Team.STATE_READY);
+		teamRepo.save(newTeam);
+		teamRepo.flush();
+		
+		logger.info(" ---added new team--- "+newTeam.toString());
+		
+		ArrayList<TeamMember> memberList = new ArrayList<>();
+		String[] requestMemberList = request.getMemberList();
+		for(String memberEmail : requestMemberList) {
+			memberList.add(new TeamMember(null,memberEmail, newTeam , TeamMember.ROLE_MEMBER, TeamMember.ACCEPT_STATE_READY ));
+		}
+		memberList.add(new TeamMember(null, leaderEmail, newTeam, TeamMember.ROLE_LEADER, TeamMember.ACCEPT_STATE_DONE));
+		teamMemberRepo.saveAll(memberList);
+		teamMemberRepo.flush();
+		logger.info("---added team member---");
+		
+		SimpleDateFormat dateFomat = new SimpleDateFormat("yyyy-MM-dd");
+		Apply apply = new Apply(null, newTeam.getTeamId(), dateFomat.format(new Date()), request.getBoardId(), request.getInfo(), request.getIdea());
+		applyRepo.save(apply);
+		applyRepo.flush();
+		logger.info("---added team apply---");
+		
+		return SingleResult.makeResponseEntity(0, "팀이 정상적으로 생성", CommonResponse.SUCC, newTeam,HttpStatus.OK);
+	}
+	
 
 	@ApiOperation(value="팀을 만들때", notes="리턴 값으로 succ, fail을 출력한다.")
 	@PostMapping(value = "/createTeam/{teamName}")

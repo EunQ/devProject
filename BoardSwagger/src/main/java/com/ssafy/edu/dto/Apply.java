@@ -38,4 +38,6 @@ public class Apply {
 
 	@Column(name = "apply_info")
 	private String applyInfo;
+	
+	private String idea;
 }
