@@ -8,20 +8,20 @@ import lombok.ToString;
 @Setter
 @ToString
 public class Board_email {
-	private int board_id;
+	private int boardId;
 	private String title;
 	private String host;
-	private String apply_start;
-	private String apply_end;
+	private String applyStart;
+	private String applyEnd;
 	private String start;
 	private String end;
-	private int people_num;
+	private int peopleNum;
 	private int price;
 	private String location;
 	private String info;
 	private String img;
 	private String email;
-	private int people_now;
+	private int peopleNow;
 	private String hashtag;
 	
 	public Board_email() {
@@ -29,55 +29,55 @@ public class Board_email {
 		// TODO Auto-generated constructor stub
 	}
 
-	public Board_email(int board_id, String title, String host, String apply_start, String apply_end, String start,
-			String end, int people_num, int price, String location, String info, String img, String email,
-			int people_now, String hashtag) {
+	public Board_email(int boardId, String title, String host, String applyStart, String applyEnd, String start,
+			String end, int peopleNum, int price, String location, String info, String img, String email,
+			int peopleNow, String hashtag) {
 		super();
-		this.board_id = board_id;
+		this.boardId = boardId;
 		this.title = title;
 		this.host = host;
-		this.apply_start = apply_start;
-		this.apply_end = apply_end;
+		this.applyStart = applyStart;
+		this.applyEnd = applyEnd;
 		this.start = start;
 		this.end = end;
-		this.people_num = people_num;
+		this.peopleNum = peopleNum;
 		this.price = price;
 		this.location = location;
 		this.info = info;
 		this.img = img;
 		this.email = email;
-		this.people_now = people_now;
+		this.peopleNow = peopleNow;
 		this.hashtag = hashtag;
 	}
 
-	public Board_email(String title, String host, String apply_start, String apply_end, String start, String end,
-			int people_num, int price, String location, String info, String img, String email, int people_now) {
+	public Board_email(String title, String host, String applyStart, String applyEnd, String start, String end,
+			int peopleNum, int price, String location, String info, String img, String email, int peopleNow) {
 		super();
 		this.title = title;
 		this.host = host;
-		this.apply_start = apply_start;
-		this.apply_end = apply_end;
+		this.applyStart = applyStart;
+		this.applyEnd = applyEnd;
 		this.start = start;
 		this.end = end;
-		this.people_num = people_num;
+		this.peopleNum = peopleNum;
 		this.price = price;
 		this.location = location;
 		this.info = info;
 		this.img = img;
 		this.email = email;
-		this.people_now = people_now;
+		this.peopleNow = peopleNow;
 	}
 
-	public Board_email(String title, String host, String apply_start, String apply_end, String start, String end,
-			int people_num, int price, String location, String info, String img, String email, String hashtag) {
+	public Board_email(String title, String host, String applyStart, String applyEnd, String start, String end,
+			int peopleNum, int price, String location, String info, String img, String email, String hashtag) {
 		super();
 		this.title = title;
 		this.host = host;
-		this.apply_start = apply_start;
-		this.apply_end = apply_end;
+		this.applyStart = applyStart;
+		this.applyEnd = applyEnd;
 		this.start = start;
 		this.end = end;
-		this.people_num = people_num;
+		this.peopleNum = peopleNum;
 		this.price = price;
 		this.location = location;
 		this.info = info;

@@ -1,10 +1,8 @@
 package com.ssafy.edu.controller;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Enumeration;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -21,23 +19,18 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ssafy.edu.dto.Apply;
-import com.ssafy.edu.dto.Apply_board;
 import com.ssafy.edu.dto.Board;
 import com.ssafy.edu.dto.Board_email;
-import com.ssafy.edu.dto.Comment;
 import com.ssafy.edu.dto.Member;
 import com.ssafy.edu.dto.Post;
-import com.ssafy.edu.dto.Post_board;
 import com.ssafy.edu.help.BoardNumberResult;
-import com.ssafy.edu.service.IBoardService;
-import com.ssafy.edu.service.IMemberService;
+import com.ssafy.edu.jpa.BoardRepo;
+import com.ssafy.edu.jpa.MemberRepo;
+import com.ssafy.edu.jpa.PostRepo;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -51,10 +44,13 @@ public class BoardController {
 	public static final Logger logger = LoggerFactory.getLogger(BoardController.class);
 
 	@Autowired
-	private IBoardService service;
+	private BoardRepo boardRepo;
 
 	@Autowired
-	private IMemberService mservice;
+	private MemberRepo memberRepo;
+	
+	@Autowired
+	private PostRepo postRepo;
 
 	@ApiOperation(value = "모든 게시판 정보를 가져온다.", response = List.class)
 	@RequestMapping(value = "/getBoard", method = RequestMethod.GET)
@@ -63,30 +59,39 @@ public class BoardController {
 		System.out.println(
 				"   IP Log : " + request.getRemoteHost() + "   " + "ACTION : " + "getBoard" + "\t" + new Date());
 
-		List<Board> list = service.getBoard();
-		if (list.isEmpty()) {
+		List<Board> boardList = boardRepo.findAll();
+		if (boardList.isEmpty()) {
 			return new ResponseEntity(HttpStatus.NO_CONTENT);
 		}
-		return new ResponseEntity<List<Board>>(list, HttpStatus.OK);
+		return new ResponseEntity<List<Board>>(boardList, HttpStatus.OK);
 	}
 
 	@ApiOperation(value = "게시글 추가", response = BoardNumberResult.class)
 	@RequestMapping(value = "/addBoard", method = RequestMethod.POST)
-	public ResponseEntity<BoardNumberResult> addBoard(@RequestParam(value = "dto_str", required = true) String dto_str,
+	public ResponseEntity<BoardNumberResult> addBoard(@RequestParam(value = "boardString", required = true) String boardString,
 													  @RequestParam(value = "file", required = false) MultipartFile file) throws Exception {
 		System.out.println("================addBoard================\t" + new Date());
-		System.out.println("dto : " + dto_str);
 
 		ObjectMapper mapper = new ObjectMapper();
 
-		Board_email dto = mapper.readValue(dto_str, Board_email.class);
-//		Board dto = mapper.readValue(dto_str, Board.class);
-
+		Board_email dto = mapper.readValue(boardString, Board_email.class);
+		
+		Board board = new Board();
+		board.setApplyEnd(dto.getApplyEnd());
+		board.setApplyStart(dto.getApplyStart());
+		board.setEnd(dto.getEnd());
+		board.setStart(dto.getStart());
+		board.setHost(dto.getHost());
+		board.setInfo(dto.getInfo());
+		board.setLocation(dto.getLocation());
+		board.setPeopleNum(dto.getPeopleNum());
+		board.setPrice(dto.getPrice());
+		board.setTitle(dto.getTitle());
+		
 		String email = dto.getEmail();
-//		
-//		String email = "data@data";
 
-		Member m = mservice.getMemberByID(email);
+		Member m = memberRepo.findByEmail(email).orElse(null);
+		
 		SimpleDateFormat dateformat = new SimpleDateFormat("yyyyMMdd");
 		String now = dateformat.format(new Date());
 
@@ -105,28 +110,23 @@ public class BoardController {
 
 			file.transferTo(destinationFile);
 			String saveUrl = "http://192.168.31.122:8197/image/";
-			dto.setImg(saveUrl + destinationFileName);
+			board.setImg(saveUrl + destinationFileName);
 		} else {
-			dto.setImg("none");
+			board.setImg("none");
 		}
-		dto.setPeople_now(0);
-		service.addBoardEmail(dto);
-		int bid = service.getBoardId();
+		
+		board.setPeopleNow(0);
+		boardRepo.save(board);
+		
+		int boardId = boardRepo.getBoardId();
 
 		Post post = new Post();
 		post.setEmail(email);
-		post.setPost_date(now);
+		post.setPostDate(now);
+		post.setBoardId(boardId);
 
-		service.addPost(post);
-		int pid = service.getBoardId();
-
-		Post_board pb = new Post_board();
-
-		pb.setBoard_id(bid);
-		pb.setPost_id(pid);
-		pb.setEmail(email);
-
-		service.addPostBoard(pb);
+		postRepo.save(post);
+		postRepo.flush();
 
 		BoardNumberResult bnr = new BoardNumberResult();
 
@@ -138,39 +138,40 @@ public class BoardController {
 	}
 
 	@ApiOperation(value = "하나의 게시글을 가져온다", response = Board.class)
-	@RequestMapping(value = "/getBoardByID/{board_id}", method = RequestMethod.GET)
-	public ResponseEntity<Board> getBoardByID(@PathVariable int board_id) throws Exception {
+	@RequestMapping(value = "/getBoardByID/{boardId}", method = RequestMethod.GET)
+	public ResponseEntity<Board> getBoardByID(@PathVariable int boardId) throws Exception {
 		System.out.println("================getBoardByID================\t" + new Date());
 
-		Board b = service.getBoardByID(board_id);
+		Board board = boardRepo.findById(boardId).orElse(null);
 
-		if (b == null) {
+		if (board == null) {
 			return new ResponseEntity(HttpStatus.NO_CONTENT);
 		}
-		return new ResponseEntity<Board>(b, HttpStatus.OK);
+		return new ResponseEntity<Board>(board, HttpStatus.OK);
 	}
 
 	@ApiOperation(value = "게시글 수정", response = BoardNumberResult.class)
 	@RequestMapping(value = "/updateBoard", method = RequestMethod.PUT)
 	public ResponseEntity<BoardNumberResult> updateBoard(
-			@RequestParam(value = "dto_str", required = true) String dto_str,
+			@RequestParam(value = "boardString", required = true) String boardString,
 			@RequestParam(value = "file", required = false) MultipartFile file) throws Exception {
 		System.out.println("================updateBoard================\t" + new Date());
 
 		ObjectMapper mapper = new ObjectMapper();
 
-		Board dto = mapper.readValue(dto_str, Board.class);
+		Board boardReq = mapper.readValue(boardString, Board.class);
 
 		SimpleDateFormat dateformat = new SimpleDateFormat("yyyyMMdd");
 		String now = dateformat.format(new Date());
 
-		Board b = service.getBoardByID(dto.getBoard_id());
-		String originImg = b.getImg();
-		dto.setPeople_now(b.getPeople_now());
+		Board boardInDb = boardRepo.findById(boardReq.getBoardId()).orElse(null);
+		
+		String originImg = boardInDb.getImg();
+		boardReq.setPeopleNow(boardInDb.getPeopleNow());
 
 		if (file == null || file.isEmpty()) {
-			dto.setImg(originImg);
-			service.updateBoard(dto);
+			boardReq.setImg(originImg);
+			boardRepo.save(boardReq);
 		} else { // 이미지 수정시
 			String filename = file.getOriginalFilename();
 			String filenameExtension = FilenameUtils.getExtension(filename).toLowerCase();
@@ -186,9 +187,10 @@ public class BoardController {
 
 			file.transferTo(destinationFile);
 			String saveUrl = "http://192.168.31.122:8197/image/";
-			dto.setImg(saveUrl + destinationFileName);
+			boardReq.setImg(saveUrl + destinationFileName);
 
-			service.updateBoardAll(dto);
+			boardRepo.save(boardReq);
+			boardRepo.flush();
 
 			String originfileUrl = "C:/BoardSwagger/BoardSwagger/src/main/resources/static/image/";
 			String originfilename = originImg.substring(33);
@@ -199,7 +201,6 @@ public class BoardController {
 				if (orignfile.delete())
 					System.out.println("=====" + filename + "=====deleted!!");
 			}
-
 		}
 		BoardNumberResult bnr = new BoardNumberResult();
 
@@ -210,28 +211,27 @@ public class BoardController {
 		return new ResponseEntity<BoardNumberResult>(bnr, HttpStatus.OK);
 	}
 
-	@ApiOperation(value = "게시글 삭제", notes = "board_id(int)만 담아 보내면됨(수정해야될듯?)", response = BoardNumberResult.class)
-	@RequestMapping(value = "/deleteBoard", method = RequestMethod.DELETE)
-	public ResponseEntity<BoardNumberResult> deleteBoard(@RequestBody Post_board dto) throws Exception {
+	@ApiOperation(value = "게시글 삭제", notes = "게시글 삭제", response = BoardNumberResult.class)
+	@RequestMapping(value = "/deleteBoard/{boardId}", method = RequestMethod.DELETE)
+	public ResponseEntity<BoardNumberResult> deleteBoard(@PathVariable int boardId) throws Exception {
 		System.out.println("================deleteBoard================\t" + new Date());
-
+		System.out.println("boardId : " + boardId );
 		BoardNumberResult bnr = new BoardNumberResult();
-		int board_id = dto.getBoard_id();
 
-		Board b = service.getBoardByID(board_id);
+		Board boardInDb = boardRepo.findOneByBoardId(boardId).orElse(null);
 		bnr.setName("deleteBoard");
-		bnr.setNumber(board_id);
+		bnr.setNumber(boardId);
 
-		if (b == null) {
+		if (boardInDb == null) {
 			bnr.setState("fail");
 			return new ResponseEntity<BoardNumberResult>(bnr, HttpStatus.BAD_REQUEST);
 		}
-		String imgurl = b.getImg();
+		String imgurl = boardInDb.getImg();
 
-		int pid = service.getPid(dto);
-		dto.setPost_id(pid);
-		service.deleteBoard(board_id);
-		service.deletePostRecord(dto);
+		Post delPost = postRepo.findOneByBoardId(boardId);
+		postRepo.delete(delPost);
+		boardRepo.delete(boardInDb);
+		bnr.setState("succ");
 
 		String fileUrl = "C:/BoardSwagger/BoardSwagger/src/main/resources/static/image/";
 		String filename = imgurl.substring(33);
@@ -246,61 +246,6 @@ public class BoardController {
 		return new ResponseEntity<BoardNumberResult>(bnr, HttpStatus.OK);
 	}
 
-	@ApiOperation(value = "댓글 추가", response = BoardNumberResult.class)
-	@RequestMapping(value = "/addComment", method = RequestMethod.POST)
-	public ResponseEntity<BoardNumberResult> addComment(@RequestBody Comment dto) throws Exception {
-		System.out.println("================addComment================\t" + new Date());
-
-		BoardNumberResult bnr = new BoardNumberResult();
-		System.out.println(dto.toString());
-		Board b = service.getBoardByID(dto.getBoard_id());
-		bnr.setName("addComment");
-		bnr.setNumber(dto.getBoard_id());
-
-		if (b == null) {
-			bnr.setState("fail");
-			return new ResponseEntity<BoardNumberResult>(bnr, HttpStatus.BAD_REQUEST);
-		}
-		bnr.setState("succ");
-		service.addComment(dto);
-
-		return new ResponseEntity<BoardNumberResult>(bnr, HttpStatus.OK);
-	}
-
-	@ApiOperation(value = "댓글 목록", response = List.class)
-	@RequestMapping(value = "/getComment/{board_id}", method = RequestMethod.GET)
-	public ResponseEntity<List<Comment>> getComment(@PathVariable int board_id) throws Exception {
-
-		System.out.println("================getComment================\t" + new Date());
-
-		List<Comment> list = service.getComment(board_id);
-
-		if (list.isEmpty()) {
-			return new ResponseEntity(HttpStatus.NO_CONTENT);
-		}
-		return new ResponseEntity<List<Comment>>(list, HttpStatus.OK);
-	}
-
-	@ApiOperation(value = "댓글 삭제", response = BoardNumberResult.class)
-	@RequestMapping(value = "/deleteComment/{cnum}", method = RequestMethod.DELETE)
-	public ResponseEntity<BoardNumberResult> deleteComment(@PathVariable int cnum) throws Exception {
-		System.out.println("================deleteComment================\t" + new Date());
-
-		BoardNumberResult bnr = new BoardNumberResult();
-		Comment c = service.getCommentByNum(cnum);
-		bnr.setName("deleteComment");
-		bnr.setNumber(cnum);
-
-		if (c == null) {
-			bnr.setState("fail");
-			return new ResponseEntity<BoardNumberResult>(bnr, HttpStatus.BAD_REQUEST);
-		}
-
-		service.deleteComment(cnum);
-		return new ResponseEntity<BoardNumberResult>(bnr, HttpStatus.OK);
-	}
-
-	
 //	@ApiOperation(value = "참가하기", notes = "board_id(int), email(String)만 넣으면 됨", response = BoardNumberResult.class)
 //	@RequestMapping(value = "/applyBoard", method = RequestMethod.POST)
 //	public ResponseEntity<BoardNumberResult> applyBoard(@RequestBody Apply_board dto) throws Exception {
@@ -311,8 +256,8 @@ public class BoardController {
 //		int bid = dto.getBoard_id();
 //
 //		Board b = service.getBoardByID(bid);
-//		int total_people = b.getPeople_num();
-//		int now_people = b.getPeople_now();
+//		int total_people = b.getPeopleNum();
+//		int now_people = b.getPeopleNow();
 //
 //		bnr.setName("applyBoard");
 //		bnr.setNumber(now_people);
@@ -338,7 +283,7 @@ public class BoardController {
 //		service.addApplyBoard(ab);
 //
 //		now_people += 1;
-//		b.setPeople_now(now_people);
+//		b.setPeopleNow(now_people);
 //		service.updateBoard(b);
 //
 //		return new ResponseEntity<BoardNumberResult>(bnr, HttpStatus.OK);
@@ -350,25 +295,11 @@ public class BoardController {
 
 		System.out.println("================searchBoardByTitle================\t" + new Date());
 
-		List<Board> list = service.searchBoardByTitle(keyword);
+		List<Board> searchList = boardRepo.findByKeyword(keyword);
 
-		if (list.isEmpty()) {
+		if (searchList.isEmpty()) {
 			return new ResponseEntity(HttpStatus.NO_CONTENT);
 		}
-		return new ResponseEntity<List<Board>>(list, HttpStatus.OK);
-	}
-	
-	@ApiOperation(value = "게시글 검색(hashtag)", response = List.class)
-	@RequestMapping(value = "/searchBoardByTag/{hashtag}", method = RequestMethod.GET)
-	public ResponseEntity<List<Board>> searchBoardByTag(@PathVariable String hashtag) throws Exception {
-		
-		System.out.println("================searchBoardByTag================\t" + new Date());
-		
-		List<Board> list = service.searchBoardByTag(hashtag);
-		
-		if (list.isEmpty()) {
-			return new ResponseEntity(HttpStatus.NO_CONTENT);
-		}
-		return new ResponseEntity<List<Board>>(list, HttpStatus.OK);
+		return new ResponseEntity<List<Board>>(searchList, HttpStatus.OK);
 	}
 }

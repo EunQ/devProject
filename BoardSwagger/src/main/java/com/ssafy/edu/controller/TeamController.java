@@ -1,39 +1,54 @@
 package com.ssafy.edu.controller;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
+import javax.persistence.PostRemove;
+
+import org.apache.ibatis.annotations.Delete;
+import org.hibernate.sql.Template;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.google.gson.Gson;
+import com.ssafy.edu.dto.Apply;
+import com.ssafy.edu.dto.Board;
 import com.ssafy.edu.dto.Member;
+import com.ssafy.edu.dto.Post;
 import com.ssafy.edu.dto.Repository;
 import com.ssafy.edu.dto.Team;
 import com.ssafy.edu.dto.TeamMember;
+import com.ssafy.edu.jpa.ApplyRepo;
+import com.ssafy.edu.jpa.BoardRepo;
 import com.ssafy.edu.jpa.MemberRepo;
+import com.ssafy.edu.jpa.PostRepo;
 import com.ssafy.edu.jpa.TeamMemberRepo;
 import com.ssafy.edu.jpa.TeamRepo;
 import com.ssafy.edu.request.AddTeamMemberRequest;
 import com.ssafy.edu.request.ApplyAsLeaderRequest;
-import com.ssafy.edu.dto.CodeRequest;
+import com.ssafy.edu.request.ApplyBoardRequest;
 import com.ssafy.edu.response.CommonResponse;
-import com.ssafy.edu.response.GithubAccessTokenRespose;
 import com.ssafy.edu.response.SingleResult;
 import com.ssafy.edu.service.JwtTokenService;
 import com.ssafy.edu.service.RepositoryService;
+import com.ssafy.edu.service.HostService;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -45,16 +60,13 @@ import io.swagger.annotations.ApiParam;
 @CrossOrigin("*")
 public class TeamController {
 	
-	/*
-	 * @ApiOperation(value="로그인", notes="이메일로 로그인을 하는 리턴값으로 토큰을 발행")
-	@PostMapping(value = "/github/accessToken")
-	public AccessTokenRequest getGithubAccessToken(	@ApiParam(value = "code 번호", required = true ) @RequestBody CodeRequest codeRequest) {
-	
-	 */
 	public static final Logger logger = LoggerFactory.getLogger(TeamController.class);
 	
 	@Autowired
 	JwtTokenService jwtTokenService;
+	
+	@Autowired
+	HostService sponsorService;
 	
 	@Autowired
 	MemberRepo memberRepo;
@@ -67,17 +79,14 @@ public class TeamController {
 	
 	@Autowired
 	RepositoryService repositoryService;
-
-	@ApiOperation(value="자신이 속한 팀들 전부 표시", notes="리턴 값으로 succ, fail을 출력한다.")
-	@GetMapping(value = "/teams")
-	public List<Team> findAllTeamByEmail(@ApiParam(value = "back-end access token", required = true) @RequestHeader("x-access-token") String accessToken) {
-		//validate하고
-		String email = jwtTokenService.getUserPk(accessToken);
-		List<Team> lists = teamRepo.findAllTeamByEmail(email);
-		return lists;
-	}
 	
-	@ApiOperation(value="팀장으로 공모전에 지원할시 헤더에는 back end에서 발행한 토큰을 이용", notes="리턴 값으로 succ, fail을 출력한다.")
+	@Autowired
+	ApplyRepo applyRepo;
+	
+	@Autowired
+	BoardRepo boardRepo;
+
+	@ApiOperation(value="github repository의 이름을 체크", notes="리턴 값으로 succ, fail을 출력한다.")
 	@GetMapping(value = "/checkRepositoryName/{repoName}")
  	public ResponseEntity<CommonResponse> checkRepositoryName(@ApiParam(value = "back-end access token", required = true) @RequestHeader("x-access-token") String accessToken,
 			@ApiParam(value = "등록하고자하는 repository name", required = true) @PathVariable String repoName) {
@@ -95,117 +104,318 @@ public class TeamController {
 		}
 		return new ResponseEntity<CommonResponse>(new CommonResponse(0, "checkRepositoryName", CommonResponse.SUCC), HttpStatus.OK);
 	}
-	
-	@ApiOperation(value="팀장으로 공모전에 지원할시", notes="리턴 값으로 succ, fail을 출력한다.")
-	@PostMapping(value = "/applyAsLeader")
-	public ResponseEntity<SingleResult<String>> applyAsLeader(@ApiParam(value = "github 저장소 이름, 백엔드 토큰, 공모전 아이디", required = true) @RequestBody ApplyAsLeaderRequest applyRequest){
-		if(applyRequest.getBoard_id() == null  || applyRequest.getGithub_repo_name() == null 
-				|| !jwtTokenService.validateToken( applyRequest.getAccess_token())) {
+
+	@ApiOperation(value="팀을 만들때", notes="리턴 값으로 succ, fail을 출력한다.")
+	@PostMapping(value = "/createTeam/{teamName}")
+	public ResponseEntity<SingleResult<Team>> createTeam(@ApiParam(value = "back-end access token", required = true) @RequestHeader("x-access-token") String accessToken,
+			 @ApiParam(value = "만들고자 하는 TeamName", required = true) @PathVariable String teamName){
+		
+		logger.info("createTeam teamName -- " + teamName); 
+		if(!jwtTokenService.validateToken(accessToken)) {
 			//board_id나 repo_name이 null이거나 유효하지 않는 토큰이면 request가 올바르지 않다고. 
-			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+			return SingleResult.makeResponseEntity(-1, "token 이 유효하지 않음.", CommonResponse.FAIL, null,HttpStatus.BAD_REQUEST);
 		}
-		Member leader = memberRepo.findByEmail(jwtTokenService.getUserPk(applyRequest.getAccess_token())).orElse(null);
+		String leaderEmail = jwtTokenService.getUserPk(accessToken);
+		Member leader = memberRepo.findByEmail(leaderEmail).orElse(null);
 		if(leader == null) {
-			//토큰에 대한 정보가 없으면
-			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+			//유저에 대한 정보가 없으면.
+			return SingleResult.makeResponseEntity(-1, "token email이 존재하지 않음", CommonResponse.FAIL, null, HttpStatus.BAD_REQUEST);
 		}
 		logger.info("Github Token : " + leader.getToken());
 		//이때까지 토큰이 올바르고, 회원이 존재하는 경우.
+		Team newTeam = new Team();
+		SimpleDateFormat fomat = new SimpleDateFormat("yyyy-MM-dd");
+		newTeam.setTeamDate(fomat.format(new Date()));
+		newTeam.setTeamMemberNum(1);
+		newTeam.setTeamName(teamName);
+		newTeam.setTeamState(Team.STATE_READY);
+		teamRepo.save(newTeam);
+		teamRepo.flush();
 		
-		Repository repository = repositoryService.createRepository(applyRequest.getGithub_repo_name(), leader.getToken()); 
-		if(repository == null) {
-			return new ResponseEntity<>(HttpStatus.ACCEPTED);
-		}
-		//여기까지 Repository 생성.
+		logger.info(newTeam.toString());
 		
-		Team team = new Team();
-		SimpleDateFormat dateFomat = new SimpleDateFormat ( "yyyy-MM-dd");
-		team.setTeamDate(dateFomat.format(System.currentTimeMillis()));
-		team.setTeamState(Team.STATE_RUN);
-		team.setTeamMemberNum(1);
-		team.setGithubRepoUrl(repository.getHtml_url());
-		teamRepo.save(team);
-		//공모전에 대한 team을 생성하는 로직
+		TeamMember newTm = new TeamMember();
+		newTm.setAccept(1);
+		newTm.setEmail(leaderEmail);
+		newTm.setRole(TeamMember.ROLE_LEADER);
+		newTm.setTeam(newTeam);
 		
-		SingleResult<String> res = new SingleResult<>(0,"by createRepo",CommonResponse.SUCC);
-		res.setData(repository.getHtml_url());
-		return new ResponseEntity<SingleResult<String>>(res, HttpStatus.OK);
+		teamMemberRepo.save(newTm);
+		teamMemberRepo.flush();
+		return SingleResult.makeResponseEntity(0, "팀이 정상적으로 생성", CommonResponse.SUCC, newTeam,HttpStatus.OK);
 	}
 	
-	@ApiOperation(value="팀장일때 Member를 팀원으로 등록하고자 할때", notes="리턴 값으로 succ, fail을 출력한다.")
-	@PostMapping(value = "/addTeamMember")
-	public ResponseEntity<CommonResponse> addTeamMember(@ApiParam(value = "백엔드 토큰,추가하고자 할 team id ,추가하고자 할 member email", required = true) @RequestBody AddTeamMemberRequest addTeamMemberRequest){
-		logger.info(addTeamMemberRequest.toString());
-		String accessToken = addTeamMemberRequest.getAccessToken();
+	@ApiOperation(value="내가 속한 팀들 전부 표시", notes="리턴 값으로 내가 속한 팀들을 전부 출력 TeamMember class List")
+	@GetMapping(value = "/user/teams")
+	public ResponseEntity<List<TeamMember>> findAllTeam(@ApiParam(value = "back-end access token", required = true) @RequestHeader("x-access-token") String accessToken){
+		
+		logger.info("team/teams -- " + accessToken); 
 		if(!jwtTokenService.validateToken(accessToken)) {
-			new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+			//board_id나 repo_name이 null이거나 유효하지 않는 토큰이면 request가 올바르지 않다고. 
+			logger.info("token error");
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		}
-		String email = jwtTokenService.getUserPk(accessToken);
-		Member owner = memberRepo.findByEmail(email).orElse(null);
-		logger.info(owner.toString());
-		
-		if(owner.getGithub() == null) {
-			return new ResponseEntity<>(new CommonResponse(-1,"github 등록을 먼저", CommonResponse.FAIL), HttpStatus.OK);
-		}
-		
-		//team_id와 member_email는 유효하다고 가정하자.
-		Team team = teamRepo.findById(addTeamMemberRequest.getTeamId()).orElse(null);
-		
-		if(team == null) {
-			return new ResponseEntity<>(new CommonResponse(-1,"team 등록을 먼저", CommonResponse.FAIL), HttpStatus.OK);
+		String memberEmail = jwtTokenService.getUserPk(accessToken);
+		Member member = memberRepo.findByEmail(memberEmail).orElse(null);
+		if(member == null) {
+			//유저에 대한 정보가 없으면.
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		}
 		
-		boolean isAddedMember = repositoryService.addTeamMember(owner.getToken(), owner.getGithub(), team.getGithubRepoUrl(), addTeamMemberRequest.getMemberEmail());
-		if(!isAddedMember) {
-			return new ResponseEntity<>(new CommonResponse(-1,"유저를 팀에 추가할 수 없습니다.", CommonResponse.FAIL), HttpStatus.OK);
-		}
-		else {
-			return new ResponseEntity<>(new CommonResponse(0,"github Repository에 추가되었습니다.", CommonResponse.SUCC), HttpStatus.OK);
-		}
+//		List<TeamMember> tms = teamMemberRepo.findAllByEmail(memberEmail);
+		List<TeamMember> resData = teamMemberRepo.findAllByEmail(memberEmail);
+//		logger.info(resData.get(0).toString());
+		Gson gson = new Gson();
+		return new ResponseEntity<>(resData, HttpStatus.OK);
 	}
-
-	@ApiOperation(value="팀장일때 Member를 추가하는 부분", notes="리턴 값으로 succ, fail을 출력한다.")
-	@PostMapping(value = "/intoTeam/{teamId}/{email}")
-	public ResponseEntity<CommonResponse> intoTeam(@ApiParam(value = "back-end access token", required = true) @RequestHeader("x-access-token") String accessToken,
-			@ApiParam(value = "등록하고자하는 Team Id", required = true) @PathVariable String teamId, @ApiParam(value = "등록하고자하는 Member email", required = true) @PathVariable String email) {
+	
+	//apply team
+	@ApiOperation(value="해당 공모전에 지원하기", notes="리턴 값으로 succ/fail출력")
+	@PostMapping(value = "/apply")
+	public ResponseEntity<CommonResponse> applyToBoard(@ApiParam(value = "back-end access token", required = true) @RequestHeader("x-access-token") String accessToken ,
+			@ApiParam(value = "지원하고자 할 Team Id, board Id, 지원서 text", required = true)  @RequestBody ApplyBoardRequest applyBoardRequest){
+		logger.info("-------------------applyToBoard-----------------");
+		logger.info(applyBoardRequest.toString()); 
+		if(!jwtTokenService.validateToken(accessToken)) {
+			//board_id나 repo_name이 null이거나 유효하지 않는 토큰이면 request가 올바르지 않다고. 
+			logger.info("token error");
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+		String leaderEmail = jwtTokenService.getUserPk(accessToken);
+		Member leader = memberRepo.findByEmail(leaderEmail).orElse(null);
+		Board board = boardRepo.findById(applyBoardRequest.getBoardId()).orElse(null);
+		
+		Team team = teamRepo.findById(applyBoardRequest.getTeamId()).orElse(null);
+		
+		if(leader == null || team == null || board == null) {
+			//유저에 대한 정보가 없으면.
+			return CommonResponse.makeResponseEntity(-1, "유효한 회원 email이 아니거나 팀, 공모전이 없습니다.", CommonResponse.FAIL, HttpStatus.BAD_REQUEST);
+		}
+		TeamMember tm = teamMemberRepo.findByEmailAndTeam(leaderEmail, team).orElse(null);
+		if(tm == null || !tm.isLeader()) {
+			return CommonResponse.makeResponseEntity(-1, "팀장 email이 아닙니다.", CommonResponse.FAIL, HttpStatus.BAD_REQUEST);
+		}
+		Apply preApply = applyRepo.findByBoardIdAndTeamId(applyBoardRequest.getBoardId(), applyBoardRequest.getTeamId()).orElse(null);
+		if(preApply != null) {
+			return CommonResponse.makeResponseEntity(-1, "이미 지원했습니다.", CommonResponse.FAIL, HttpStatus.BAD_REQUEST);
+		}
+		SimpleDateFormat fomatDate = new SimpleDateFormat("yyyy-MM-dd");
+		try {
+			Date applyLimitDate = fomatDate.parse(board.getApplyEnd());
+			if(applyLimitDate.before(new Date())) {
+				return CommonResponse.makeResponseEntity(-1, "지원 가능한 날짜가 지났습니다.", CommonResponse.FAIL, HttpStatus.BAD_REQUEST);
+			}
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		Apply apply = new Apply();
+		apply.setApplyDate(fomatDate.format(new Date()));
+		apply.setApplyInfo(applyBoardRequest.getInfo());
+		apply.setBoardId(applyBoardRequest.getBoardId());
+		apply.setTeamId(applyBoardRequest.getTeamId());
+		logger.info("apply - " + apply.toString());
+		applyRepo.save(apply);
+		applyRepo.flush();
+		return CommonResponse.makeResponseEntity(0, "정상적으로 지원했습니다.", CommonResponse.SUCC, HttpStatus.BAD_REQUEST);
+	}
+	
+	@ApiOperation(value="팀장일때 Team상태를 확정하는 부분.", notes="리턴 값으로 succ, fail을 출력한다.")
+	@PatchMapping(value = "/confirm/{teamId}")
+	public ResponseEntity<CommonResponse> confirmTeam(@ApiParam(value = "back-end access token", required = true) @RequestHeader("x-access-token") String accessToken,
+			@ApiParam(value = "기존의 Team Id", required = true) @PathVariable int teamId) {
+		logger.info("----confirmTeam----");
 		if(!jwtTokenService.validateToken(accessToken)) {
 			return new ResponseEntity<>(new CommonResponse(-1,"유효하지 않는 access-token", CommonResponse.FAIL), HttpStatus.BAD_REQUEST);
 		}
 		String leaderEmail = jwtTokenService.getUserPk(accessToken);
-		TeamMember tm = teamMemberRepo.findByEmail(leaderEmail);
-		if(tm == null || !tm.isLeader() ) {
-			return new ResponseEntity<>(new CommonResponse(-1,"올바르지 않는 Leader, 팀이 잘못되었거나 팀장이 아님", CommonResponse.FAIL), HttpStatus.BAD_REQUEST);
+		Team leaderTeam  = teamRepo.findById(teamId).orElse(null);
+		if(leaderTeam == null) {
+			return new ResponseEntity<>(new CommonResponse(-1,"유효하지 않는 teamId", CommonResponse.FAIL), HttpStatus.BAD_REQUEST);
 		}
-		teamMemberRepo.save(new TeamMember())
+		
+		TeamMember tm = teamMemberRepo.findByEmailAndTeam(leaderEmail, leaderTeam).orElse(null);
+		
+		if(tm == null || !tm.isLeader() ) {
+			return new ResponseEntity<>(new CommonResponse(-1,"올바르지 않는 Leader, 팀이 없거나 팀장이 아님", CommonResponse.FAIL), HttpStatus.BAD_REQUEST);
+		}
+		
+		logger.info("before change Team's State");
+		leaderTeam.setTeamState(Team.STATE_RUN);
+		teamRepo.save(leaderTeam);
+		teamRepo.flush();
+		
+		//여기서 아직 accept 요청이 남은 teamMember는 삭제한다.
+		List<TeamMember> tms = teamMemberRepo.findAllByTeamAndAccept(leaderTeam, TeamMember.ACCEPT_STATE_READY);
+		teamMemberRepo.deleteAll(tms);
+		teamMemberRepo.flush();
+		
+		return new ResponseEntity<>(new CommonResponse(0,"confirm team succ", CommonResponse.SUCC), HttpStatus.OK);
+	}
+	
+	@ApiOperation(value="팀장일때 Team을 제거하는 부분, 팀이 아직 Ready(공모전 시작전)상태일때 제거가능", notes="team 상태가 Ready일 경우만 삭제가능. 리턴 값으로 succ, fail을 출력한다.")
+	@DeleteMapping(value = "/delete/{teamId}")
+	public ResponseEntity<CommonResponse> deleteTeam(@ApiParam(value = "back-end access token", required = true) @RequestHeader("x-access-token") String accessToken,
+			@ApiParam(value = "기존의 Team Id", required = true) @PathVariable int teamId) {
+		logger.info("----deleteTeam----");
+		if(!jwtTokenService.validateToken(accessToken)) {
+			return new ResponseEntity<>(new CommonResponse(-1,"유효하지 않는 access-token", CommonResponse.FAIL), HttpStatus.BAD_REQUEST);
+		}
+		String leaderEmail = jwtTokenService.getUserPk(accessToken);
+		Team leaderTeam  = teamRepo.findById(teamId).orElse(null);
+		if(leaderTeam == null) {
+			return new ResponseEntity<>(new CommonResponse(-1,"유효하지 않는 teamId", CommonResponse.FAIL), HttpStatus.BAD_REQUEST);
+		}
+		
+		TeamMember tm = teamMemberRepo.findByEmailAndTeam(leaderEmail, leaderTeam).orElse(null);
+		
+		if(tm == null || !tm.isLeader() ) {
+			return new ResponseEntity<>(new CommonResponse(-1,"올바르지 않는 Leader, 팀이 없거나 팀장이 아님", CommonResponse.FAIL), HttpStatus.BAD_REQUEST);
+		}
+		
+		logger.info("before delete Team's State");
+		teamRepo.delete(leaderTeam);
+		teamRepo.flush();
+		
+		return new ResponseEntity<>(new CommonResponse(0,"confirm team succ", CommonResponse.SUCC), HttpStatus.OK);
+	}
+	
+
+	@ApiOperation(value="팀장일때 Member를 추가하는 부분", notes="리턴 값으로 succ, fail을 출력한다.")
+	@PostMapping(value = "/intoTeam/{teamId}/{email}")
+	public ResponseEntity<CommonResponse> intoTeam(@ApiParam(value = "back-end access token", required = true) @RequestHeader("x-access-token") String accessToken,
+			@ApiParam(value = "기존의 Team Id", required = true) @PathVariable int teamId, @ApiParam(value = "등록하고자하는 Member email", required = true) @PathVariable String email) {
+		logger.info("----intoTeam----");
+		if(!jwtTokenService.validateToken(accessToken)) {
+			return new ResponseEntity<>(new CommonResponse(-1,"유효하지 않는 access-token", CommonResponse.FAIL), HttpStatus.BAD_REQUEST);
+		}
+		String leaderEmail = jwtTokenService.getUserPk(accessToken);
+		Team leaderTeam  = teamRepo.findById(teamId).orElse(null);
+		if(leaderTeam == null) {
+			return new ResponseEntity<>(new CommonResponse(-1,"유효하지 않는 teamId", CommonResponse.FAIL), HttpStatus.BAD_REQUEST);
+		}
+		
+		TeamMember tm = teamMemberRepo.findByEmailAndTeam(leaderEmail, leaderTeam).orElse(null);
+		
+		if(tm == null || !tm.isLeader() ) {
+			return new ResponseEntity<>(new CommonResponse(-1,"올바르지 않는 Leader, 팀이 없거나 팀장이 아님", CommonResponse.FAIL), HttpStatus.BAD_REQUEST);
+		}
+		Member addMember = memberRepo.findByEmail(email).orElse(null);
+		if(addMember == null ) {
+			return new ResponseEntity<>(new CommonResponse(-1,"올바르지 않는 Member, 팀원이 존재하지 않음.", CommonResponse.FAIL), HttpStatus.BAD_REQUEST);
+		}
+		if(addMember.getEmail().equals(leaderEmail)) {
+			return new ResponseEntity<>(new CommonResponse(-1,"자기 자신은 추가될 수 없음.", CommonResponse.FAIL), HttpStatus.BAD_REQUEST);
+		}
+		
+		logger.info("add TeamMember ..insert");
+		TeamMember newTm = new TeamMember();
+		newTm.setAccept(0);
+		newTm.setEmail(email);
+		newTm.setRole(TeamMember.ROLE_MEMBER);
+		newTm.setTeam(leaderTeam);
+		teamMemberRepo.save(newTm);
+		teamMemberRepo.flush();
 		return new ResponseEntity<>(new CommonResponse(0,"into Team succ", CommonResponse.SUCC), HttpStatus.OK);
 	}
 	
 
 	@ApiOperation(value="팀장일때 Member를 제거하는 부분", notes="리턴 값으로 succ, fail을 출력한다.")
-	@PostMapping(value = "/outTeam/{email}")
-	public ResponseEntity<CommonResponse> intoTeam(){
-		
-		return new ResponseEntity<>(new CommonResponse(0,"into Team succ", CommonResponse.SUCC), HttpStatus.OK);
-	}
-	
-	//applyToBoard
-	@ApiOperation(value="팀장일때 Member를 추가하는 부분", notes="리턴 값으로 succ, fail을 출력한다.")
-	@PostMapping(value = "/applyToBoard/{teamId}/{boardId}")
-	public ResponseEntity<CommonResponse> applyToBoard(@ApiParam(value = "back-end access token", required = true) @RequestHeader("x-access-token") String accessToken,
-			@ApiParam(value = "등록하고자하는 Team Id", required = true) @PathVariable String teamId, @ApiParam(value = "등록하고자하는 공모전 Id", required = true) @PathVariable String boardId) {
+	@DeleteMapping(value = "/outTeam/{teamId}/{email}")
+	public ResponseEntity<CommonResponse> outTeam(@ApiParam(value = "back-end access token", required = true) @RequestHeader("x-access-token") String accessToken,
+			@ApiParam(value = "기존의 Team Id", required = true) @PathVariable int teamId, @ApiParam(value = "제거하고자하는 Member email", required = true) @PathVariable String email){
 		if(!jwtTokenService.validateToken(accessToken)) {
 			return new ResponseEntity<>(new CommonResponse(-1,"유효하지 않는 access-token", CommonResponse.FAIL), HttpStatus.BAD_REQUEST);
 		}
-		String leaderEmail = jwtTokenService.getUserPk(accessToken);
-		TeamMember tm = teamMemberRepo.findByEmail(leaderEmail);
-		if(tm == null || !tm.isLeader() ) {
-			return new ResponseEntity<>(new CommonResponse(-1,"올바르지 않는 Leader, 팀이 잘못되었거나 팀장이 아님", CommonResponse.FAIL), HttpStatus.BAD_REQUEST);
+		Team leaderTeam  = teamRepo.findById(teamId).orElse(null);
+		if(leaderTeam == null) {
+			return new ResponseEntity<>(new CommonResponse(-1,"유효하지 않는 teamId", CommonResponse.FAIL), HttpStatus.BAD_REQUEST);
 		}
-		
-		//여기에 applyRepo.save(...)
-		//teamMemberRepo.save(new TeamMember())
-		return new ResponseEntity<>(new CommonResponse(0,"into Team succ", CommonResponse.SUCC), HttpStatus.OK);
+		String leaderEmail = jwtTokenService.getUserPk(accessToken);
+		TeamMember leaderTm = teamMemberRepo.findByEmailAndTeam(leaderEmail, leaderTeam).orElse(null);
+		if(leaderTm == null || !leaderTm.isLeader() ) {
+			return new ResponseEntity<>(new CommonResponse(-1,"올바르지 않는 Leader, 팀이 없거나 팀장이 아님", CommonResponse.FAIL), HttpStatus.BAD_REQUEST);
+		}
+		Member addMember = memberRepo.findByEmail(email).orElse(null);
+		if(addMember == null ) {
+			return new ResponseEntity<>(new CommonResponse(-1,"올바르지 않는 Member, 팀원이 존재하지 않음.", CommonResponse.FAIL), HttpStatus.BAD_REQUEST);
+		}
+		if(addMember.getEmail().equals(leaderEmail)) {
+			return new ResponseEntity<>(new CommonResponse(-1,"자기 자신은 추가될 수 없음.", CommonResponse.FAIL), HttpStatus.BAD_REQUEST);
+		}
+		TeamMember memberTm = teamMemberRepo.findByEmailAndTeam(email, leaderTeam).orElse(null);
+		if(memberTm == null) {
+			return new ResponseEntity<>(new CommonResponse(-1,"올바르지 않는 Member, 팀원이 팀에 존재하지 않음.", CommonResponse.FAIL), HttpStatus.BAD_REQUEST);
+		}
+		if(memberTm.getAccept() == 1) {
+			//수락된 맴버였으면 팀원숫자에서 제거
+			leaderTeam.subMember();
+			teamRepo.save(leaderTeam);
+			teamRepo.flush();
+		}
+		teamMemberRepo.delete(memberTm);
+		teamMemberRepo.flush();
+		return new ResponseEntity<>(new CommonResponse(0,"out Team succ", CommonResponse.SUCC), HttpStatus.OK);
 	}
 	
+	@ApiOperation(value="팀원으로서 accept 요청들", notes="리턴 값으로 요청받은 TeamMember entries를 리턴")
+	@GetMapping(value = "/accept")
+	public ResponseEntity<List<TeamMember>> findAllTeamMemberRequest(@ApiParam(value = "back-end access token", required = true) @RequestHeader("x-access-token") String accessToken) {
+		if(!jwtTokenService.validateToken(accessToken)) {
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+		String memberEmail = jwtTokenService.getUserPk(accessToken);
+		
+		List<TeamMember> dates =  teamMemberRepo.findAllByEmailAndAccept(memberEmail, 0);
+			
+		return new ResponseEntity<List<TeamMember>>(dates, HttpStatus.OK);
+	}
+		
 	
+	@ApiOperation(value="팀원으로서 accept부분을 하는 부분.", notes="리턴 값으로 succ, fail을 출력한다.")
+	@PatchMapping(value = "/accept/{teamMemberId}")
+	public ResponseEntity<CommonResponse> acceptTeamMember(@ApiParam(value = "back-end access token", required = true) @RequestHeader("x-access-token") String accessToken,
+			@ApiParam(value = "teamMember id [팀원의 정보가 저장되어있는 id]", required = true) @PathVariable int teamMemberId) {
+		if(!jwtTokenService.validateToken(accessToken)) {
+			return new ResponseEntity<>(new CommonResponse(-1,"유효하지 않는 access-token", CommonResponse.FAIL), HttpStatus.BAD_REQUEST);
+		}
+		String memberEmail = jwtTokenService.getUserPk(accessToken);
+		TeamMember tm = teamMemberRepo.findById(teamMemberId).orElse(null);
+		
+		if(tm == null) {
+			return new ResponseEntity<>(new CommonResponse(-1,"유효하지 않는 team_member_id", CommonResponse.FAIL), HttpStatus.BAD_REQUEST);
+		}
+
+		if(!tm.getEmail().equals(memberEmail)) {
+			return new ResponseEntity<>(new CommonResponse(-1,"권한이 없는 email", CommonResponse.FAIL), HttpStatus.BAD_REQUEST);
+		}
+		
+		tm.setAccept(1);
+		teamMemberRepo.save(tm);
+		teamMemberRepo.flush();
+		
+		Team team = tm.getTeam();
+		team.addMember();
+		teamRepo.save(team);
+		teamRepo.flush();
+		//team member num을 하나 늘린다.
+		
+		return new ResponseEntity<>(new CommonResponse(0,"accept Team succ", CommonResponse.SUCC), HttpStatus.OK);
+	}
+	
+	@ApiOperation(value="해당 팀에대한 요청이 승인된 TeamMember를 리턴함 ", notes="팀원 요청에 대한 리턴 값으로 해당팀에 대한 TeamMember List를 출력.")
+	@PatchMapping(value = "/members/{teamId}")
+	public ResponseEntity<List<TeamMember>> findTeamMember(@ApiParam(value = "team id [팀 id]", required = true) @PathVariable int teamId) {
+		Team team = teamRepo.findById(teamId).orElse(null);
+		if(team == null) {
+			return new ResponseEntity<>( HttpStatus.OK);
+		}
+		List<TeamMember> dates = teamMemberRepo.findAllByTeamAndAccept(team, TeamMember.ACCEPT_STATE_DONE);
+		return new ResponseEntity<>(dates, HttpStatus.OK);
+	}
+	
+	@ApiOperation(value="해당 boardId에 대한 팀들의 정보 출력", notes="해당 공모전 ID에 대한 신청한 팀들의 정보를 부른다.")
+	@PatchMapping(value = "/teams/{boardId}")
+	public ResponseEntity<List<Team>> findAllTeamByBoardId(@ApiParam(value = "해당 공모전 id", required = true) @PathVariable int boardId) {
+		return new ResponseEntity<List<Team>>(teamRepo.findAllByBoardId(boardId), HttpStatus.OK); 
+	}
 }

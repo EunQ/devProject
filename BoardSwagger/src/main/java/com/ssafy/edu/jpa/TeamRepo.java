@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import org.hibernate.annotations.NamedNativeQuery;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -29,5 +30,18 @@ public interface TeamRepo extends JpaRepository<Team, Integer>{
 //	@NamedNativeQuery(name = "test1", query = "select tm from TeamMember")
 	
 	@Query(nativeQuery = true, value = "select * from Team t where t.team_id in (select team_id from team_member where email = :email)")
-	List<Team> findAllTeamByEmail(@Param("email") String email);
+	List<Team> findAllByEmail(@Param("email") String email);
+	
+
+	@Query(nativeQuery = true, value = "select * from Team t where t.team_id in (select apply.team_id from apply where apply.board_id = :board_id)")
+	List<Team> findAllByBoardId(@Param("board_id") Integer board_id);
+	
+	
+	@Modifying
+	@Query(nativeQuery = true, value="delete from Team t where t.state = 'READY' and t.team_id in (select apply.team_id from apply where apply.board_id = :board_id)")
+	void deleteAllByBoardIdAndReady(@Param("board_id")int boardId);
+	
+	@Modifying
+	@Query(nativeQuery = true, value = "update Team t set t.state = :state where t.state = :pre_state and t.team_id in (select apply.team_id from apply where apply.board_id = :board_id)")
+	void updateTeamState(@Param("board_id")int boardId,@Param("pre_state") String preState,@Param("state") String state);
 }

@@ -1,8 +1,27 @@
 package com.ssafy.edu.dto;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+
+@Getter
+@Setter
+@ToString
+@Entity
+@Table(name = "comment")
 public class Comment {
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int cnum;
-	private int board_id;
+	@Column(name = "board_id")
+	private int boardId;
 	private String email;
 	private String ccontent;
 
@@ -11,56 +30,18 @@ public class Comment {
 		// TODO Auto-generated constructor stub
 	}
 
-	public Comment(int cnum, int board_id, String email, String ccontent) {
+	public Comment(int cnum, int boardId, String email, String ccontent) {
 		super();
 		this.cnum = cnum;
-		this.board_id = board_id;
+		this.boardId = boardId;
 		this.email = email;
 		this.ccontent = ccontent;
 	}
 
-	public Comment(int board_id, String email, String ccontent) {
+	public Comment(int boardId, String email, String ccontent) {
 		super();
-		this.board_id = board_id;
+		this.boardId = boardId;
 		this.email = email;
-		this.ccontent = ccontent;
-	}
-
-	@Override
-	public String toString() {
-		return "Comment [cnum=" + cnum + ", board_id=" + board_id + ", email=" + email + ", ccontent=" + ccontent
-				+ "]";
-	}
-
-	public int getCnum() {
-		return cnum;
-	}
-
-	public void setCnum(int cnum) {
-		this.cnum = cnum;
-	}
-
-	public int getBoard_id() {
-		return board_id;
-	}
-
-	public void setBoard_id(int board_id) {
-		this.board_id = board_id;
-	}
-
-	public String getEmail() {
-		return email;
-	}
-
-	public void setEmail(String email) {
-		this.email = email;
-	}
-
-	public String getCcontent() {
-		return ccontent;
-	}
-
-	public void setCcontent(String ccontent) {
 		this.ccontent = ccontent;
 	}
 }

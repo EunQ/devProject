@@ -20,6 +20,7 @@ import com.ssafy.edu.dto.Member;
 import com.ssafy.edu.dto.Notice;
 import com.ssafy.edu.help.MemberNumberResult;
 import com.ssafy.edu.help.NoticeNumberResult;
+import com.ssafy.edu.jpa.NoticeRepo;
 import com.ssafy.edu.service.INoticeService;
 
 import io.swagger.annotations.Api;
@@ -34,33 +35,93 @@ public class NoticeController {
 	@Autowired
 	INoticeService nservice;
 	
+	@Autowired
+	NoticeRepo noticeRepo;
+	
 	@ApiOperation(value = "모든 공지 정보를 가져온다.", response = List.class)
 	@RequestMapping(value = "/getNotice", method = RequestMethod.GET)
 	public ResponseEntity<List<Notice>> getBoard(HttpServletRequest request) throws Exception {
 
 		System.out.println(
 				"   IP Log : " + request.getRemoteHost() + "   " + "ACTION : " + "getBoard" + "\t" + new Date());
-		List<Notice> list = nservice.getNotice();
+		List<Notice> noticeList = noticeRepo.findAll();
 		
-		return new ResponseEntity<List<Notice>>(list, HttpStatus.OK);
+		return new ResponseEntity<List<Notice>>(noticeList, HttpStatus.OK);
 	}
 	
 	@ApiOperation(value = "공지 추가", notes = "공지 추가")
 	@RequestMapping(value = "/addNotice", method = RequestMethod.POST)
 	public ResponseEntity<NoticeNumberResult> addNotice(@RequestBody Notice notice) throws Exception {
 		System.out.println("================addNotice================\t" + new Date());
-		System.out.println(notice.toString());
 		
-		Notice n = nservice.getNoticeByID(notice.getNotice_id());
+		Notice n = nservice.getNoticeByID(notice.getNoticeId());
 
 		NoticeNumberResult nnr = new NoticeNumberResult();
 		nnr.setNumber(0);
 		nnr.setName("addNotice");
-		nnr.setState("succ");
 
 		if (n != null) {
 			nnr.setNumber(-1);
-			nnr.setName("addNotice");
+			nnr.setState("fail");
+			return new ResponseEntity<NoticeNumberResult>(nnr, HttpStatus.OK);
+		}
+		SimpleDateFormat dateformat = new SimpleDateFormat("yyyy-MM-dd");
+		String now = dateformat.format(new Date());
+		
+		nnr.setState("succ");
+		
+		notice.setDate(now);
+		noticeRepo.save(notice);
+		return new ResponseEntity<NoticeNumberResult>(nnr, HttpStatus.OK);
+	}
+	
+	@ApiOperation(value = "하나의 공지를 가져온다", response = Notice.class)
+	@RequestMapping(value = "/getNoticeByID/{noticeId}", method = RequestMethod.GET)
+	public ResponseEntity<Notice> getNoticeByID(@PathVariable int noticeId) throws Exception {
+		System.out.println("================getNoticeByID================\t" + new Date());
+
+		Notice notice = noticeRepo.findOneByNoticeId(noticeId);
+
+		if (notice == null) {
+			return new ResponseEntity(HttpStatus.NO_CONTENT);
+		}
+		return new ResponseEntity<Notice>(notice, HttpStatus.OK);
+	}
+	
+	@ApiOperation(value = "공지 삭제", notes = "공지 삭제")
+	@RequestMapping(value = "/deleteNotice/{noticeId}", method = RequestMethod.DELETE)
+	public ResponseEntity<NoticeNumberResult> deleteNotice(@PathVariable int noticeId) throws Exception {
+		System.out.println("================deleteMember================\t" + new Date());
+
+		Notice notice = noticeRepo.findOneByNoticeId(noticeId);
+
+		NoticeNumberResult nnr = new NoticeNumberResult();
+		nnr.setNumber(0);
+		nnr.setName("deleteMember");
+
+		if (notice == null) {
+			nnr.setNumber(-1);
+			nnr.setState("fail");
+			return new ResponseEntity<NoticeNumberResult>(nnr, HttpStatus.OK);
+		}
+
+		noticeRepo.delete(notice);
+		nnr.setState("succ");
+		return new ResponseEntity<NoticeNumberResult>(nnr, HttpStatus.OK);
+	}
+	
+	@ApiOperation(value = "공지 수정", notes = "공지 수정")
+	@RequestMapping(value = "/updateNotice", method = RequestMethod.POST)
+	public ResponseEntity<NoticeNumberResult> updateNotice(@RequestBody Notice notice) throws Exception {
+		System.out.println("================updateNotice================\t" + new Date());
+		
+		Notice n = noticeRepo.findOneByNoticeId(notice.getNoticeId());
+		NoticeNumberResult nnr = new NoticeNumberResult();
+		nnr.setNumber(0);
+		nnr.setName("updateNotice");
+
+		if (n == null) {
+			nnr.setNumber(-1);
 			nnr.setState("fail");
 			return new ResponseEntity<NoticeNumberResult>(nnr, HttpStatus.OK);
 		}
@@ -68,44 +129,9 @@ public class NoticeController {
 		String now = dateformat.format(new Date());
 		
 		notice.setDate(now);
+		noticeRepo.save(notice);
 		
-		nservice.addNotice(notice);
-		return new ResponseEntity<NoticeNumberResult>(nnr, HttpStatus.OK);
-	}
-	
-	@ApiOperation(value = "하나의 공지를 가져온다", response = Notice.class)
-	@RequestMapping(value = "/getNoticeByID/{notice_id}", method = RequestMethod.GET)
-	public ResponseEntity<Notice> getNoticeByID(@PathVariable int notice_id) throws Exception {
-		System.out.println("================getNoticeByID================\t" + new Date());
-
-		Notice n = nservice.getNoticeByID(notice_id);
-
-		if (n == null) {
-			return new ResponseEntity(HttpStatus.NO_CONTENT);
-		}
-		return new ResponseEntity<Notice>(n, HttpStatus.OK);
-	}
-	
-	@ApiOperation(value = "공지 삭제", notes = "공지 삭제")
-	@RequestMapping(value = "/deleteNotice/{notice_id}", method = RequestMethod.DELETE)
-	public ResponseEntity<NoticeNumberResult> deleteNotice(@PathVariable int notice_id) throws Exception {
-		System.out.println("================deleteMember================\t" + new Date());
-
-		Notice n = nservice.getNoticeByID(notice_id);
-
-		NoticeNumberResult nnr = new NoticeNumberResult();
-		nnr.setNumber(0);
-		nnr.setName("deleteMember");
 		nnr.setState("succ");
-
-		if (n == null) {
-			nnr.setNumber(-1);
-			nnr.setName("deleteMember");
-			nnr.setState("fail");
-			return new ResponseEntity<NoticeNumberResult>(nnr, HttpStatus.OK);
-		}
-
-		nservice.deleteNotice(notice_id);
 		return new ResponseEntity<NoticeNumberResult>(nnr, HttpStatus.OK);
 	}
 }

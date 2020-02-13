@@ -1,54 +1,47 @@
 package com.ssafy.edu.dto;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+
+@Getter
+@Setter
+@ToString
+@Entity
+@Table(name = "post")
 public class Post {
-	private int post_id;
-	private String post_date;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "post_id")
+	private int postId;
+	@Column(name = "post_date")
+	private String postDate;
 	private String email;
+	@Column(name = "board_id")
+	private int boardId;
 	
 	public Post() {
 		super();
 		// TODO Auto-generated constructor stub
 	}
 
-	public Post(int post_id, String post_date, String email) {
+	public Post(int postId, String postDate, String email) {
 		super();
-		this.post_id = post_id;
-		this.post_date = post_date;
+		this.postId = postId;
+		this.postDate = postDate;
 		this.email = email;
 	}
 	
-	public Post(String post_date, String email) {
+	public Post(String postDate, String email) {
 		super();
-		this.post_date = post_date;
-		this.email = email;
-	}
-
-	@Override
-	public String toString() {
-		return "Post [post_id=" + post_id + ", post_date=" + post_date + ", email=" + email + "]";
-	}
-
-	public int getPost_id() {
-		return post_id;
-	}
-
-	public void setPost_id(int post_id) {
-		this.post_id = post_id;
-	}
-
-	public String getPost_date() {
-		return post_date;
-	}
-
-	public void setPost_date(String post_date) {
-		this.post_date = post_date;
-	}
-
-	public String getEmail() {
-		return email;
-	}
-
-	public void setEmail(String email) {
+		this.postDate = postDate;
 		this.email = email;
 	}
 }

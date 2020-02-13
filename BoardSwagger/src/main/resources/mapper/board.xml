@@ -26,9 +26,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 		INSERT INTO POST(POST_DATE, EMAIL) VALUES(#{post_date},#{email});
 	</insert>
 	
-	<insert id="addPostBoard" parameterType="com.ssafy.edu.dto.Post_board">
-		INSERT INTO POST_BOARD(POST_ID, EMAIL, BOARD_ID) VALUES(#{post_id},#{email},#{board_id});
-	</insert>
+<!-- 	<insert id="addPostBoard" parameterType="com.ssafy.edu.dto.Post_board"> -->
+<!-- 		INSERT INTO POST_BOARD(POST_ID, EMAIL, BOARD_ID) VALUES(#{post_id},#{email},#{board_id}); -->
+<!-- 	</insert> -->
 	
 	<select id="getBoardByID" parameterType="java.lang.Integer" resultType="com.ssafy.edu.dto.Board">
 		SELECT * FROM BOARD WHERE BOARD_ID = #{board_id}
@@ -62,13 +62,13 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 		WHERE BOARD_ID = #{board_id}
 	</update>
 	
-	<delete id="deletePostRecord" parameterType="com.ssafy.edu.dto.Post_board">
-		DELETE FROM POST WHERE POST_ID = #{post_id} AND EMAIL = #{email}
-	</delete>
+<!-- 	<delete id="deletePostRecord" parameterType="com.ssafy.edu.dto.Post_board"> -->
+<!-- 		DELETE FROM POST WHERE POST_ID = #{post_id} AND EMAIL = #{email} -->
+<!-- 	</delete> -->
 	
-	<select id="getPid" parameterType="com.ssafy.edu.dto.Post_board" resultType="java.lang.Integer">
-		SELECT POST_ID FROM POST_BOARD WHERE EMAIL = #{email} AND BOARD_ID = #{board_id}
-	</select>
+<!-- 	<select id="getPid" parameterType="com.ssafy.edu.dto.Post_board" resultType="java.lang.Integer"> -->
+<!-- 		SELECT POST_ID FROM POST_BOARD WHERE EMAIL = #{email} AND BOARD_ID = #{board_id} -->
+<!-- 	</select> -->
 	
 	<delete id="deleteBoard" parameterType="java.lang.Integer">
 		DELETE FROM BOARD WHERE BOARD_ID = #{board_id}
@@ -78,9 +78,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 		INSERT INTO APPLY(APPLY_DATE,EMAIL) VALUES(#{apply_date}, #{email})
 	</insert>
 	
-	<insert id="addApplyBoard" parameterType="com.ssafy.edu.dto.Apply_board">
-		INSERT INTO APPLY_BOARD(BOARD_ID, APPLY_ID, EMAIL) VALUES(#{board_id}, #{apply_id}, #{email})
-	</insert>
+<!-- 	<insert id="addApplyBoard" parameterType="com.ssafy.edu.dto.Apply_board"> -->
+<!-- 		INSERT INTO APPLY_BOARD(BOARD_ID, APPLY_ID, EMAIL) VALUES(#{board_id}, #{apply_id}, #{email}) -->
+<!-- 	</insert> -->
 	
 	<select id="searchBoardByTitle" parameterType="java.lang.String" resultType="com.ssafy.edu.dto.Board">
 		SELECT * FROM BOARD WHERE TITLE LIKE CONCAT('%',#{keyword},'%')

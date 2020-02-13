@@ -50,7 +50,7 @@ public class AccessController {
 	@Autowired
 	private GithubMemberService githubMemberSerivce;
 	@Autowired
-	private MemberServiceImple memberSerive;
+	private MemberServiceImple memberService;
 	@Autowired
 	private JwtTokenService jwtTokenService;
 	
@@ -101,7 +101,7 @@ public class AccessController {
             	res.setScope(map.get("scope"));
             	res.setToken_type(map.get("token_type"));
             	String email = githubMemberSerivce.getGithubUser(map.get("access_token")).getLogin();
-            	Member member = memberSerive.getMemberByID(email);
+            	Member member = memberService.getMemberByID(email);
             	if(member != null) {
             		res.setLogin_access_token(jwtTokenService.createToken(member.getEmail(), member.getAuth()));
             	}

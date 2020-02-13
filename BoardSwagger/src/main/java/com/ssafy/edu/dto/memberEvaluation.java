@@ -1,5 +1,7 @@
 package com.ssafy.edu.dto;
 
+import java.io.Serializable;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -14,28 +16,32 @@ import lombok.Setter;
 import lombok.ToString;
 
 @Entity
-@Table(name = "apply")
-@ToString
-@Setter
-@Getter
+@Table(name="member_evaluation")
 @NoArgsConstructor
 @AllArgsConstructor
-public class Apply {
+@Getter
+@Setter
+@ToString
+public class memberEvaluation implements Serializable {
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "apply_id")
-	private Integer applyId;
+	@Column(name="member_evaluation_id")
+	private int memberEvaluationId;
 	
-	@Column(name = "team_id")
+	@Column(name="to_member")
+	private String toMember;
+	
+	@Column(name="from_member")
+ 	private String fromMember;
+	
+	private int score;
+	
+	private String info;
+	
+	@Column(name="e_date")
+	private String eDate;
+	
+	@Column(name="team_id")
 	private int teamId;
-	
-	@Column(name = "apply_date")
-	private String applyDate;
-
-	@Column(name = "board_id")
-	private int boardId;
-
-	@Column(name = "apply_info")
-	private String applyInfo;
 }
