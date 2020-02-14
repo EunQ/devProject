@@ -37,4 +37,6 @@ public class TeamEvaluation implements Serializable {
 	
 	@Column(name="team_id")
 	private int teamId;
+	
+	private String host;
 }

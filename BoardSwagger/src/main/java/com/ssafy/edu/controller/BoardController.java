@@ -41,20 +41,19 @@ import io.swagger.annotations.ApiOperation;
 @CrossOrigin("*")
 public class BoardController {
 
+	public static final String awsSaveFolder = "/home/ubuntu/image/";
+	public static final String awsUrl = "http://13.209.18.235:8197/image/";
 	public static final Logger logger = LoggerFactory.getLogger(BoardController.class);
 	
 	@Autowired
 	private BoardRepo boardRepo;
 
 	@Autowired
-	private MemberRepo memberRepo;
-	
-	@Autowired
 	private PostRepo postRepo;
 	
-
-	private final String awsSaveFolder = "/home/ubuntu/image/";
-	private final String awsUrl = "http://13.209.18.235:8197/image/";
+	@Autowired
+	private MemberRepo memberRepo;
+	
 
 	@ApiOperation(value = "모든 게시판 정보를 가져온다.", response = List.class)
 	@RequestMapping(value = "/getBoard", method = RequestMethod.GET)
@@ -183,8 +182,8 @@ public class BoardController {
 			String filenameExtension = FilenameUtils.getExtension(filename).toLowerCase();
 			File destinationFile;
 			String destinationFileName;
-			String fileUrl = "C:/BoardSwagger/BoardSwagger/src/main/resources/static/image/";
-
+//			String fileUrl = "C:/BoardSwagger/BoardSwagger/src/main/resources/static/image/";
+			String fileUrl = awsSaveFolder;
 			SimpleDateFormat timeformat = new SimpleDateFormat("yyMMddHHmmss");
 			destinationFileName = timeformat.format(new Date()) + "." + filenameExtension;
 			destinationFile = new File(fileUrl + destinationFileName);
@@ -192,13 +191,15 @@ public class BoardController {
 			System.out.println("File : " + destinationFileName + "======" + new Date());
 
 			file.transferTo(destinationFile);
-			String saveUrl = "http://192.168.31.122:8197/image/";
+			//String saveUrl = "http://192.168.31.122:8197/image/";
+			String saveUrl = awsUrl;
 			boardReq.setImg(saveUrl + destinationFileName);
 
 			boardRepo.save(boardReq);
 			boardRepo.flush();
 
-			String originfileUrl = "C:/BoardSwagger/BoardSwagger/src/main/resources/static/image/";
+//			String originfileUrl = "C:/BoardSwagger/BoardSwagger/src/main/resources/static/image/";
+			String originfileUrl = awsSaveFolder;
 			String originfilename = originImg.substring(33);
 
 			File orignfile = new File(originfileUrl + originfilename);

@@ -7,10 +7,12 @@ import org.hibernate.annotations.NamedNativeQuery;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.ssafy.edu.dto.Team;
+import com.ssafy.edu.dto.TeamWithApply;
 
 @Repository
 public interface TeamRepo extends JpaRepository<Team, Integer>{
@@ -36,6 +38,9 @@ public interface TeamRepo extends JpaRepository<Team, Integer>{
 	@Query(nativeQuery = true, value = "select * from Team t where t.team_id in (select apply.team_id from apply where apply.board_id = :board_id)")
 	List<Team> findAllByBoardId(@Param("board_id") Integer board_id);
 	
+	@Query(nativeQuery = true ,value = "select new com.ssafy.edu.dto.TeamWithApply(t.team_id ,t.team_date ,t.team_name, a.idea) "
+			+ " from Team t, Apply a where t.team_id = a.team_id and a.board_id = :board_id")
+	List<TeamWithApply> findAllTeamWithApplyByBoardId(@Param("board_id") Integer board_id);
 	
 	@Modifying
 	@Query(nativeQuery = true, value="delete from Team t where t.state = 'READY' and t.team_id in (select apply.team_id from apply where apply.board_id = :board_id)")

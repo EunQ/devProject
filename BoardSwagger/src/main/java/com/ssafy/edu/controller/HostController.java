@@ -58,63 +58,63 @@ public class HostController {
 	public ResponseEntity<List<Board>> findAllBoardByHost(@ApiParam(value = "기존의  BoardId", required = true) @PathVariable String email){
 		return new ResponseEntity<List<Board>>(boardRepo.findAllByHostEmail(email), HttpStatus.OK);
 	}
-	
-	@ApiOperation(value="주최자가 공모전을 시작한다.", notes="팀의 상태가 아직도 Ready인 팀은 전부 삭제한다.")
-	@PatchMapping(value = "/run/{boardId}")
-	public ResponseEntity<CommonResponse> updateTeamStateToRun(@ApiParam(value = "back-end access token", required = true) @RequestHeader("x-access-token") String accessToken,
-			@ApiParam(value = "기존의  BoardId", required = true) @PathVariable int boardId){
-		//해당 boardId에 지원한 팀들 전부 컨펌으로.. 인원 제한을 넣는다.
-		logger.info("----updateTeamStateToRun-----");
-		String hostEmail = jwtTokenService.getUserPk(accessToken);
-		if(!jwtTokenService.validateToken(accessToken)) {
-			return CommonResponse.makeResponseEntity(-1, "token이 유효하지 않습니다.", CommonResponse.FAIL, HttpStatus.BAD_REQUEST);
-		}
-		if(!hostService.validateSponsor(boardId, hostEmail)) {
-			return CommonResponse.makeResponseEntity(-1, "올바른 sponsor email이 아닙니다.", CommonResponse.FAIL, HttpStatus.BAD_REQUEST);
-		}
-		//백엔드 토큰이 주최자의 것인지 확인하는용도.
-		
-		//이제까지 확정을 하지 않는 팀은 그냥 삭제
-		teamRepo.deleteAllByBoardIdAndReady(boardId);
-		teamRepo.flush();
-		
-		return CommonResponse.makeResponseEntity(0, "팀들의 상태를 업데이트 ready->run으로 변경", CommonResponse.SUCC, HttpStatus.OK);
-	}
-	
-	@ApiOperation(value="주최자가 팀의 상태를 1차로 탈락시킬 팀", notes="해당 boardId를 END_HALF로 바꿔서 1차로 떨어진 팀으로 생각.")
-	@PatchMapping(value = "/{boardId}/half/{teamId}")
-	public ResponseEntity<CommonResponse> updateTeamStateToHalf(@ApiParam(value = "back-end access token", required = true) @RequestHeader("x-access-token") String accessToken,
-			@ApiParam(value = "기존의  BoardId", required = true) @PathVariable int boardId, @ApiParam(value = "기존의  TeamId", required = true) @PathVariable int teamId){
-		//해당 boardId에 지원한 팀들 전부 컨펌으로.. 인원 제한을 넣는다.
-		logger.info("----updateTeamStateToHalf-----");
-		String hostEmail = jwtTokenService.getUserPk(accessToken);
-		if(!jwtTokenService.validateToken(accessToken)) {
-			return CommonResponse.makeResponseEntity(-1, "token이 유효하지 않습니다.", CommonResponse.FAIL, HttpStatus.BAD_REQUEST);
-		}
-		if(!hostService.validateTeamIdWithSponsor(teamId, boardId, hostEmail)) {
-			return CommonResponse.makeResponseEntity(-1, "올바른 host, teamId가 아닙니다.", CommonResponse.FAIL, HttpStatus.BAD_REQUEST);
-		}
-		//백엔드 토큰이 주최자의 것인지 확인하는용도.
-		
-		teamRepo.updateTeamState(boardId, Team.STATE_RUN, Team.STATE_END_HALF);
-		teamRepo.flush();
-		
-		return CommonResponse.makeResponseEntity(0, "해당 팀의 상태를 run->end_half로 변경", CommonResponse.SUCC, HttpStatus.OK);
-	}
-	@ApiOperation(value="주최자가 팀의 상태를 최종 종료시킴", notes="해당 boardId를 End_Full로 바꿔서 최종 종료되었음을 표시.")
-	@PatchMapping(value = "/{boardId}/full/{teamId}")
-	public ResponseEntity<CommonResponse> updateTeamStateToFull(@ApiParam(value = "back-end access token", required = true) @RequestHeader("x-access-token") String accessToken,
-			@ApiParam(value = "기존의  BoardId", required = true) @PathVariable int boardId){
-		//해당 boardId에 지원한 팀들 전부 컨펌으로.. 인원 제한을 넣는다.
-		logger.info("----주최자 confirm-----");
-		String sponserEmail = jwtTokenService.getUserPk(accessToken);
-		if(!jwtTokenService.validateToken(accessToken)) {
-			return CommonResponse.makeResponseEntity(-1, "token이 유효하지 않습니다.", CommonResponse.FAIL, HttpStatus.BAD_REQUEST);
-		}
-		if(!hostService.validateSponsor(boardId, sponserEmail)) {
-			return CommonResponse.makeResponseEntity(-1, "올바른 sponsor email이 아닙니다.", CommonResponse.FAIL, HttpStatus.BAD_REQUEST);
-		}
-		
-		return null;
-	}
+//	
+//	@ApiOperation(value="주최자가 공모전을 시작한다.", notes="팀의 상태가 아직도 Ready인 팀은 전부 삭제한다.")
+//	@PatchMapping(value = "/run/{boardId}")
+//	public ResponseEntity<CommonResponse> updateTeamStateToRun(@ApiParam(value = "back-end access token", required = true) @RequestHeader("x-access-token") String accessToken,
+//			@ApiParam(value = "기존의  BoardId", required = true) @PathVariable int boardId){
+//		//해당 boardId에 지원한 팀들 전부 컨펌으로.. 인원 제한을 넣는다.
+//		logger.info("----updateTeamStateToRun-----");
+//		String hostEmail = jwtTokenService.getUserPk(accessToken);
+//		if(!jwtTokenService.validateToken(accessToken)) {
+//			return CommonResponse.makeResponseEntity(-1, "token이 유효하지 않습니다.", CommonResponse.FAIL, HttpStatus.BAD_REQUEST);
+//		}
+//		if(!hostService.validateSponsor(boardId, hostEmail)) {
+//			return CommonResponse.makeResponseEntity(-1, "올바른 sponsor email이 아닙니다.", CommonResponse.FAIL, HttpStatus.BAD_REQUEST);
+//		}
+//		//백엔드 토큰이 주최자의 것인지 확인하는용도.
+//		
+//		//이제까지 확정을 하지 않는 팀은 그냥 삭제
+//		teamRepo.deleteAllByBoardIdAndReady(boardId);
+//		teamRepo.flush();
+//		
+//		return CommonResponse.makeResponseEntity(0, "팀들의 상태를 업데이트 ready->run으로 변경", CommonResponse.SUCC, HttpStatus.OK);
+//	}
+//	
+//	@ApiOperation(value="주최자가 팀의 상태를 1차로 탈락시킬 팀", notes="해당 boardId를 END_HALF로 바꿔서 1차로 떨어진 팀으로 생각.")
+//	@PatchMapping(value = "/{boardId}/half/{teamId}")
+//	public ResponseEntity<CommonResponse> updateTeamStateToHalf(@ApiParam(value = "back-end access token", required = true) @RequestHeader("x-access-token") String accessToken,
+//			@ApiParam(value = "기존의  BoardId", required = true) @PathVariable int boardId, @ApiParam(value = "기존의  TeamId", required = true) @PathVariable int teamId){
+//		//해당 boardId에 지원한 팀들 전부 컨펌으로.. 인원 제한을 넣는다.
+//		logger.info("----updateTeamStateToHalf-----");
+//		String hostEmail = jwtTokenService.getUserPk(accessToken);
+//		if(!jwtTokenService.validateToken(accessToken)) {
+//			return CommonResponse.makeResponseEntity(-1, "token이 유효하지 않습니다.", CommonResponse.FAIL, HttpStatus.BAD_REQUEST);
+//		}
+//		if(!hostService.validateTeamIdWithSponsor(teamId, boardId, hostEmail)) {
+//			return CommonResponse.makeResponseEntity(-1, "올바른 host, teamId가 아닙니다.", CommonResponse.FAIL, HttpStatus.BAD_REQUEST);
+//		}
+//		//백엔드 토큰이 주최자의 것인지 확인하는용도.
+//		
+//		teamRepo.updateTeamState(boardId, Team.STATE_RUN, Team.STATE_END_HALF);
+//		teamRepo.flush();
+//		
+//		return CommonResponse.makeResponseEntity(0, "해당 팀의 상태를 run->end_half로 변경", CommonResponse.SUCC, HttpStatus.OK);
+//	}
+//	@ApiOperation(value="주최자가 팀의 상태를 최종 종료시킴", notes="해당 boardId를 End_Full로 바꿔서 최종 종료되었음을 표시.")
+//	@PatchMapping(value = "/{boardId}/full/{teamId}")
+//	public ResponseEntity<CommonResponse> updateTeamStateToFull(@ApiParam(value = "back-end access token", required = true) @RequestHeader("x-access-token") String accessToken,
+//			@ApiParam(value = "기존의  BoardId", required = true) @PathVariable int boardId){
+//		//해당 boardId에 지원한 팀들 전부 컨펌으로.. 인원 제한을 넣는다.
+//		logger.info("----주최자 confirm-----");
+//		String sponserEmail = jwtTokenService.getUserPk(accessToken);
+//		if(!jwtTokenService.validateToken(accessToken)) {
+//			return CommonResponse.makeResponseEntity(-1, "token이 유효하지 않습니다.", CommonResponse.FAIL, HttpStatus.BAD_REQUEST);
+//		}
+//		if(!hostService.validateSponsor(boardId, sponserEmail)) {
+//			return CommonResponse.makeResponseEntity(-1, "올바른 sponsor email이 아닙니다.", CommonResponse.FAIL, HttpStatus.BAD_REQUEST);
+//		}
+//		
+//		return null;
+//	}
 }
