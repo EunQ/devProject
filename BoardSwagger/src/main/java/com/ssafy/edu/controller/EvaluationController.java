@@ -21,8 +21,12 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.ssafy.edu.dto.Member;
+import com.ssafy.edu.dto.MemberEvaluation;
 import com.ssafy.edu.dto.Team;
 import com.ssafy.edu.dto.TeamEvaluation;
+import com.ssafy.edu.jpa.MemberEvaluationRepo;
+import com.ssafy.edu.jpa.MemberRepo;
 import com.ssafy.edu.jpa.TeamEvaluationRepo;
 import com.ssafy.edu.jpa.TeamRepo;
 import com.ssafy.edu.request.EvaluateTeamRequest;
@@ -53,6 +57,12 @@ public class EvaluationController {
 	
 	@Autowired
 	private TeamEvaluationRepo teamEvaluationRepo;
+	
+	@Autowired
+	private MemberEvaluationRepo memberEvaluationRepo;
+	
+	@Autowired
+	private MemberRepo memberRepo;
 	
 	@Autowired
 	private TeamRepo teamRepo;
@@ -138,22 +148,46 @@ public class EvaluationController {
 		return CommonResponse.makeResponseEntity(0, "해당 팀 평가 수정.", CommonResponse.SUCC, HttpStatus.OK);
 	}	
 	
-//	
-//	//팀원들이 팀원들을 평가하는 기능.
-//	@ApiOperation(value="내가 받은 평가들  전체 보기", notes="리턴 값으로 succ, fail을 출력한다.")
-//	@GetMapping(value = "/member/{fromId}/to/{toId}")
-//	public ResponseEntity<SingleResult<TeamEvaluation>> getTeamEvaluation(@ApiParam(value = "공모전 id", required = true) @PathVariable Integer boardId, 
-//			@ApiParam(value = "팀 id", required = true) @PathVariable Integer teamId){
-//		logger.info("-------------------- getTeamEvaluation -------------------");
-//		
-//		TeamEvaluation te = teamEvaluationRepo.findByBoardIdAndTeamId(boardId, teamId).orElse(null);
-//		if(te == null) {
-//			return new ResponseEntity<>(new SingleResult<>(-1, "해당 평가가 없음", CommonResponse.FAIL),HttpStatus.BAD_REQUEST);
-//		}
-//
-//		return new ResponseEntity<>(new SingleResult<>(0, "평가를 보냈음.", CommonResponse.SUCC, te),HttpStatus.OK);
-//	}		
-//	
+
+	//팀원들이 팀원들을 평가하는 기능.
+	@ApiOperation(value="내가 받은 평가들  전체 보기", notes="리턴 값으로 내가 평가한 걸 전부표시.")
+	@GetMapping(value = "/member/receive")
+	public ResponseEntity<SingleResult<List<MemberEvaluation>>> getReceiveByMember(@ApiParam(value = "백엔드 x-access-token", required = true) @RequestHeader("x-access-token") String accessToken){
+		logger.info("-------------------- getReceiveByMember -------------------");
+		if(!jwtTokenService.validateToken(accessToken)) {
+			//board_id나 repo_name이 null이거나 유효하지 않는 토큰이면 request가 올바르지 않다고. 
+			return SingleResult.makeResponseEntity(-1, "token 이 유효하지 않음.", CommonResponse.FAIL, null,HttpStatus.BAD_REQUEST);
+		}
+		String email = jwtTokenService.getUserPk(accessToken);
+		Member member = memberRepo.findByEmail(email).orElse(null);
+		if(member == null) {
+			//유저에 대한 정보가 없으면.
+			return SingleResult.makeResponseEntity(-1, "token email이 존재하지 않음", CommonResponse.FAIL, null, HttpStatus.BAD_REQUEST);
+		}
+		
+		List<MemberEvaluation> res = memberEvaluationRepo.findAllByToMember(email);
+		return new ResponseEntity<>(new SingleResult<>(0, "평가를 보냈음.", CommonResponse.SUCC, res),HttpStatus.OK);
+	}		
+	
+	@ApiOperation(value="내가 한 평가들 전체 보기", notes="리턴 값으로 내가 받은 평가 전부 표시.")
+	@GetMapping(value = "/member/send")
+	public ResponseEntity<SingleResult<List<MemberEvaluation>>> getSendByMember(@ApiParam(value = "백엔드 x-access-token", required = true) @RequestHeader("x-access-token") String accessToken){
+		logger.info("-------------------- getSendByMember -------------------");
+		if(!jwtTokenService.validateToken(accessToken)) {
+			//board_id나 repo_name이 null이거나 유효하지 않는 토큰이면 request가 올바르지 않다고. 
+			return SingleResult.makeResponseEntity(-1, "token 이 유효하지 않음.", CommonResponse.FAIL, null,HttpStatus.BAD_REQUEST);
+		}
+		String email = jwtTokenService.getUserPk(accessToken);
+		Member member = memberRepo.findByEmail(email).orElse(null);
+		if(member == null) {
+			//유저에 대한 정보가 없으면.
+			return SingleResult.makeResponseEntity(-1, "token email이 존재하지 않음", CommonResponse.FAIL, null, HttpStatus.BAD_REQUEST);
+		}
+		
+		List<MemberEvaluation> res = memberEvaluationRepo.findAllByFromMember(email);
+		return new ResponseEntity<>(new SingleResult<>(0, "평가를 보냈음.", CommonResponse.SUCC, res),HttpStatus.OK);
+	}	
+	
 //	@ApiOperation(value="같은 팀내에서 내가 받은 평가들  전체 보기", notes="리턴 값으로 succ, fail을 출력한다.")
 //	@GetMapping(value = "/member/{fromId}/to/{toId}")
 //	public ResponseEntity<SingleResult<TeamEvaluation>> getTeamEvaluation(@ApiParam(value = "공모전 id", required = true) @PathVariable Integer boardId, 
