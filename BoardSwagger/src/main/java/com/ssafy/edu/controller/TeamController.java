@@ -442,7 +442,7 @@ public class TeamController {
 	
 	
 	@ApiOperation(value="팀원으로서 accept부분을 하는 부분.", notes="리턴 값으로 succ, fail을 출력한다.")
-	@PatchMapping(value = "/accept/{teamMemberId}")
+	@GetMapping(value = "/accept/{teamMemberId}")
 	public ResponseEntity<CommonResponse> acceptTeamMember(@ApiParam(value = "back-end access token", required = true) @RequestHeader("x-access-token") String accessToken,
 			@ApiParam(value = "teamMember id [팀원의 정보가 저장되어있는 id]", required = true) @PathVariable int teamMemberId) {
 		if(!jwtTokenService.validateToken(accessToken)) {
