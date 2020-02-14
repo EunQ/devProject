@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ssafy.board">
+
+	<select id="getBoard" resultType="com.ssafy.edu.dto.Board">
+		SELECT * FROM BOARD
+	</select>
+
+	<insert id="addBoardEmail" parameterType="com.ssafy.edu.dto.Board_email">
+		INSERT INTO BOARD(TITLE, HOST, APPLY_START, APPLY_END, START, END, PEOPLE_NUM, PRICE, LOCATION, INFO, IMG, PEOPLE_NOW)
+		VALUES(#{title}, #{host}, #{apply_start}, #{apply_end}, #{start}, #{end}, #{people_num}, #{price}, #{location}, #{info}, #{img}, #{people_now});
+	</insert>
+	
+	<insert id="addBoard" parameterType="com.ssafy.edu.dto.Board">
+		INSERT INTO BOARD(TITLE, HOST, APPLY_START, APPLY_END, START, END, PEOPLE_NUM, PRICE, LOCATION, INFO, IMG, PEOPLE_NOW)
+		VALUES(#{title}, #{host}, #{apply_start}, #{apply_end}, #{start}, #{end}, #{people_num}, #{price}, #{location}, #{info}, #{img}, #{people_now});
+	</insert>
+	
+	<select id="getBoardId" resultType="java.lang.Integer">
+		SELECT LAST_INSERT_ID();
+	</select>
+	
+	<insert id="addPost" parameterType="com.ssafy.edu.dto.Post">
+		INSERT INTO POST(POST_DATE, EMAIL) VALUES(#{post_date},#{email});
+	</insert>
+	
+<!-- 	<insert id="addPostBoard" parameterType="com.ssafy.edu.dto.Post_board"> -->
+<!-- 		INSERT INTO POST_BOARD(POST_ID, EMAIL, BOARD_ID) VALUES(#{post_id},#{email},#{board_id}); -->
+<!-- 	</insert> -->
+	
+	<select id="getBoardByID" parameterType="java.lang.Integer" resultType="com.ssafy.edu.dto.Board">
+		SELECT * FROM BOARD WHERE BOARD_ID = #{board_id}
+	</select>
+	
+	<insert id="addComment" parameterType="com.ssafy.edu.dto.Comment">
+		INSERT INTO COMMENT(BOARD_ID, EMAIL, CCONTENT) VALUES(#{board_id}, #{email}, #{ccontent})
+	</insert>
+	
+	<select id="getComment" parameterType="java.lang.Integer" resultType="com.ssafy.edu.dto.Comment">
+		SELECT * FROM COMMENT WHERE BOARD_ID = #{board_id}
+	</select>
+	
+	<select id="getCommentByNum" parameterType="java.lang.Integer" resultType="com.ssafy.edu.dto.Comment">
+		SELECT * FROM COMMENT WHERE CNUM = #{cnum}
+	</select>
+	
+	<delete id="deleteComment" parameterType="java.lang.Integer">
+		DELETE FROM COMMENT WHERE CNUM = #{cnum}
+	</delete>
+	
+	<update id="updateBoardAll" parameterType="com.ssafy.edu.dto.Board">
+		UPDATE BOARD SET TITLE = #{title}, HOST = #{host}, APPLY_START = #{apply_start}, APPLY_END = #{apply_end}, START = #{start}, END = #{end},
+		PEOPLE_NUM = #{people_num}, PRICE = #{price}, LOCATION =#{location}, INFO = #{info}, IMG = #{img}, PEOPLE_NOW = #{people_now}
+		WHERE BOARD_ID = #{board_id}
+	</update>
+	
+	<update id="updateBoard" parameterType="com.ssafy.edu.dto.Board">
+		UPDATE BOARD SET TITLE = #{title}, HOST = #{host}, APPLY_START = #{apply_start}, APPLY_END = #{apply_end}, START = #{start}, END = #{end},
+		PEOPLE_NUM = #{people_num}, PRICE = #{price}, LOCATION =#{location}, INFO = #{info}, PEOPLE_NOW = #{people_now}
+		WHERE BOARD_ID = #{board_id}
+	</update>
+	
+<!-- 	<delete id="deletePostRecord" parameterType="com.ssafy.edu.dto.Post_board"> -->
+<!-- 		DELETE FROM POST WHERE POST_ID = #{post_id} AND EMAIL = #{email} -->
+<!-- 	</delete> -->
+	
+<!-- 	<select id="getPid" parameterType="com.ssafy.edu.dto.Post_board" resultType="java.lang.Integer"> -->
+<!-- 		SELECT POST_ID FROM POST_BOARD WHERE EMAIL = #{email} AND BOARD_ID = #{board_id} -->
+<!-- 	</select> -->
+	
+	<delete id="deleteBoard" parameterType="java.lang.Integer">
+		DELETE FROM BOARD WHERE BOARD_ID = #{board_id}
+	</delete>
+	
+	<insert id="addApply" parameterType="com.ssafy.edu.dto.Apply">
+		INSERT INTO APPLY(APPLY_DATE,EMAIL) VALUES(#{apply_date}, #{email})
+	</insert>
+	
+<!-- 	<insert id="addApplyBoard" parameterType="com.ssafy.edu.dto.Apply_board"> -->
+<!-- 		INSERT INTO APPLY_BOARD(BOARD_ID, APPLY_ID, EMAIL) VALUES(#{board_id}, #{apply_id}, #{email}) -->
+<!-- 	</insert> -->
+	
+	<select id="searchBoardByTitle" parameterType="java.lang.String" resultType="com.ssafy.edu.dto.Board">
+		SELECT * FROM BOARD WHERE TITLE LIKE CONCAT('%',#{keyword},'%')
+	</select>
+	
+	<select id="searchBoardByTag" parameterType="java.lang.String" resultType="com.ssafy.edu.dto.Board">
+<!-- 		SELECT * FROM BOARD WHERE HASHTAG LIKE CONCAT('%',#{keyword},'%') -->
+	</select>
+
+</mapper>
