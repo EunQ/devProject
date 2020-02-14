@@ -93,7 +93,7 @@ public class EvaluationController {
 			@ApiParam(value = "팀 id", required = true) @PathVariable Integer teamId){
 		logger.info("-------------------- getTeamEvaluation -------------------");
 		
-		TeamEvaluation te = teamEvaluationRepo.findByBoardIdAndTeamId(boardId, teamId).orElse(null);
+		TeamEvaluation te = teamEvaluationRepo.findByTeamId(teamId).orElse(null);
 		if(te == null) {
 			return new ResponseEntity<>(new SingleResult<>(-1, "해당 평가가 없음", CommonResponse.FAIL),HttpStatus.BAD_REQUEST);
 		}

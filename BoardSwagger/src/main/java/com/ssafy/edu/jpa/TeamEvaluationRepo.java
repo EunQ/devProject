@@ -13,6 +13,10 @@ import com.ssafy.edu.dto.TeamEvaluation;
 
 @Repository
 public interface TeamEvaluationRepo extends JpaRepository<TeamEvaluation, Integer>{
-	Optional<TeamEvaluation> findByBoardIdAndTeamId(int boardId, int teamId);
-	List<TeamEvaluation> findAllByBoardId(int boardId);
+	
+	//팀은 하나의 공모전만 지원가능하니 팀 아이디만 있으면 해당평가를 볼 수 있음.
+	Optional<TeamEvaluation> findByTeamId(int teamId);
+	
+	@Query(nativeQuery = true, value = "select * from team_evaluation where team_id in (select team_id from appy where board_id = :board_id)")
+	List<TeamEvaluation> findAllByBoardId(@Param("board_id") int boardId);
 }
