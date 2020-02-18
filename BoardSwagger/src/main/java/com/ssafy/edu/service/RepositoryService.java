@@ -28,7 +28,7 @@ import com.ssafy.edu.dto.Repository;
 @Service
 public class RepositoryService {
 
-	private final String oauth = "3564594f12218f1e4ebd128eb92025bdd965c616"; 
+	private final String oauth = "47c2d70609eccf9cc166f2e2a7b78cad1971767d"; 
 	public static final Logger logger = LoggerFactory.getLogger(RepositoryService.class);
 
 	@Autowired
@@ -138,7 +138,6 @@ public class RepositoryService {
 		String repoName = getRepoNameByUrl(url);
 		String addUrl = ownerName + "/" + repoName+"/commits";
 		logger.info("url - "  + addUrl);
-
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 		headers.set("Authorization", "Bearer " + oauth);
