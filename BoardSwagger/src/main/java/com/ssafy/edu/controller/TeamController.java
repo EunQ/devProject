@@ -558,12 +558,13 @@ public class TeamController {
 		return new ResponseEntity<>(applyRepo.findAllByBoardId(boardId), HttpStatus.OK);
 	}
 	
-	@GetMapping()
-	public ResponseEntity<String> findReadMe(){
+	@ApiOperation(value = "repository의 readme 추출")
+	@GetMapping(value = "/getMarkDown/{repository}" )
+	public ResponseEntity<String> getMarkDown(String repository){
 		// repository 정보 가져온 후 html_url 추출 필요
-		
 		CrawlService crawl = new CrawlService();
+		String readMe = crawl.goCrawling(repository);
 		
-		return new ResponseEntity<String>(HttpStatus.OK);
+		return new ResponseEntity<String>(readMe,HttpStatus.OK);
 	}
 }

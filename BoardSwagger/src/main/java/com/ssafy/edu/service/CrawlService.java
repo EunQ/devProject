@@ -8,7 +8,7 @@ import org.jsoup.select.Elements;
 
 public class CrawlService {
 	
-	public static String goCrawling(String repository) {
+	public String goCrawling(String repository) {
 		String mdUrl = repository.replace("github.com", "raw.githubusercontent.com") + "/master/README.md";
 		Document doc = null;
 		try {
