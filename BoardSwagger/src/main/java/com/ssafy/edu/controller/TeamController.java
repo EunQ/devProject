@@ -559,7 +559,7 @@ public class TeamController {
 	
 	@ApiOperation(value = "repository의 readme 추출")
 	@GetMapping(value = "/getMarkDown/{repository}" )
-	public ResponseEntity<String> getMarkDown(String repository){
+	public ResponseEntity<String> getMarkDown(@PathVariable String repository){
 		// repository 정보 가져온 후 html_url 추출 필요
 		CrawlService crawl = new CrawlService();
 		String readMe = crawl.goCrawling(repository);
