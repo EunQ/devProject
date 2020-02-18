@@ -16,7 +16,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
-import org.w3c.dom.ls.LSException;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -29,10 +28,12 @@ import com.ssafy.edu.dto.Repository;
 @Service
 public class RepositoryService {
 
+	private final String oauth = "3564594f12218f1e4ebd128eb92025bdd965c616"; 
 	public static final Logger logger = LoggerFactory.getLogger(RepositoryService.class);
 
 	@Autowired
 	private RestTemplate restTemplate;
+	
 	
 	public Repository createRepository(String name,  String githubAccessToken) {
 		Repository repository = new Repository();
@@ -90,8 +91,11 @@ public class RepositoryService {
 		String repoName = getRepoNameByUrl(url);
 		String addUrl = ownerName + "/" + repoName+"/commits";
 		Commit lastCommit = new Commit();
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+		headers.set("Authorization", "Bearer " + oauth);
 		try {
-			HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(null, null);
+			HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(null, headers);
 			logger.info("getLastCommit");
 			//https://api.github.com/repos/eunq/devProejct/commits
             ResponseEntity<String> response = restTemplate.exchange("https://api.github.com/repos/"+addUrl, HttpMethod.GET, request, String.class);
@@ -110,8 +114,11 @@ public class RepositoryService {
 		String repoName = getRepoNameByUrl(url);
 		String addUrl = ownerName + "/" + repoName+"/commits";
 		List<Commit> res = new ArrayList<Commit>();
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+		headers.set("Authorization", "Bearer " + oauth);
 		try {
-			HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(null, null);
+			HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(null, headers);
 			logger.info("getLastCommit - num");
 			//https://api.github.com/repos/eunq/devProejct/commits
             ResponseEntity<String> response = restTemplate.exchange("https://api.github.com/repos/"+addUrl, HttpMethod.GET, request, String.class);
@@ -130,11 +137,17 @@ public class RepositoryService {
 		String ownerName = getRepoOwnerByUrl(url);
 		String repoName = getRepoNameByUrl(url);
 		String addUrl = ownerName + "/" + repoName+"/commits";
+		logger.info("url - "  + addUrl);
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+		headers.set("Authorization", "Bearer " + oauth);
 		HashMap<String, Integer> res = new HashMap<>();
 		try {
-			HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(null, null);
+			HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(null, headers);
 			logger.info("getLastCommit - num");
 			//https://api.github.com/repos/eunq/devProejct/commits
+			
             ResponseEntity<String> response = restTemplate.exchange("https://api.github.com/repos/"+addUrl, HttpMethod.GET, request, String.class);
             if (response.getStatusCode() == HttpStatus.OK) {
         		JsonParser parser = new JsonParser();

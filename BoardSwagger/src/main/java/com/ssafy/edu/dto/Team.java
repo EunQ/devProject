@@ -31,7 +31,7 @@ import lombok.ToString;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString(exclude = "teamMembers")
+@ToString
 public class Team implements Serializable {
 
 	static final public String STATE_READY = "READY";
@@ -65,6 +65,7 @@ public class Team implements Serializable {
 
 	@OneToMany(mappedBy = "team",cascade = CascadeType.ALL)
 	@JsonBackReference
+	@ToString.Exclude
     private List<TeamMember> teamMembers = new ArrayList<>();
 	
 	public void subMember() {

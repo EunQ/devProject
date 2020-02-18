@@ -30,6 +30,7 @@ import com.ssafy.edu.dto.MailUtil;
 import com.ssafy.edu.dto.Member;
 import com.ssafy.edu.help.MemberNumberResult;
 import com.ssafy.edu.jpa.MemberRepo;
+import com.ssafy.edu.request.UserAddGithubRequest;
 import com.ssafy.edu.response.CommonResponse;
 import com.ssafy.edu.response.LoginResponse;
 import com.ssafy.edu.response.SingleResult;
@@ -292,17 +293,33 @@ public class MemberController {
         
         if (findMember != null)
             return new CommonResponse(1, "이미 회원가입이 되어있습니다.", CommonResponse.FAIL);
-        //Member newMember = githubMemberService.getMemberByGithubMember(githubMember, githubUserEmail);
         member.setEmail(githubMember.getLogin());
         member.setGithub(githubMember.getLogin());
         
         memberRepo.save(member);
         memberRepo.flush();
-        
-        //service.addMember(member);
-        //service.changeMemberInfo(member);
-        
         return new CommonResponse(0, "social signup success", CommonResponse.SUCC);
+    }
+	
+	
+	@ApiOperation(value = "유저 깃헙 추가.", notes = "깃헙 추가 인증하는 부분. back-end token, github token을 보낸다.")
+    @PostMapping(value = "/user/github")
+    public ResponseEntity<CommonResponse> userAddGithub(@ApiParam(value = "back-end token, github token", required = true) @RequestBody UserAddGithubRequest request) {
+    	logger.info("/user/github - " + request.toString());
+    	if(!jwtTokenService.validateToken(request.getBackEndToken())) {
+    		return CommonResponse.makeResponseEntity(-1, "back-end token error", CommonResponse.FAIL, HttpStatus.BAD_REQUEST);
+    	}
+    	String email = jwtTokenService.getUserPk(request.getBackEndToken());
+    	Member member = memberRepo.findByEmail(email).orElse(null);
+    	if(member == null) {
+    		return CommonResponse.makeResponseEntity(-1, "member not exist", CommonResponse.FAIL, HttpStatus.BAD_REQUEST);
+    	}
+    	GithubMember githubMember = githubMemberService.getGithubUser(request.getGithubToken());
+    	member.setGithub(githubMember.getLogin());
+    	member.setToken(request.getGithubToken());
+    	memberRepo.save(member);
+    	memberRepo.flush();
+		return CommonResponse.makeResponseEntity(0, "정상적으로 github정보 추가됨", CommonResponse.SUCC, HttpStatus.OK);
     }
 	
 	@ApiOperation(value = "login_access_token으로 유저정보 알기", notes = "/api/user 로 회원정보를 알 수 있다.")
