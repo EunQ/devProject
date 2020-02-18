@@ -344,7 +344,7 @@ public class TeamController {
 	@DeleteMapping(value = "/confirm/{teamId}")
 	public ResponseEntity<CommonResponse> confirmDeleteTeam(@ApiParam(value = "back-end access token", required = true) @RequestHeader("x-access-token") String accessToken,
 			@ApiParam(value = "기존의 Team Id", required = true) @PathVariable int teamId) {
-		logger.info("----confirmDeleteTeam----");
+		logger.info("--------confirmDeleteTeam---------");
 		if(!jwtTokenService.validateToken(accessToken)) {
 			return new ResponseEntity<>(new CommonResponse(-1,"유효하지 않는 access-token", CommonResponse.FAIL), HttpStatus.BAD_REQUEST);
 		}
@@ -358,10 +358,9 @@ public class TeamController {
 		if(tm == null || !tm.isLeader() ) {
 			return new ResponseEntity<>(new CommonResponse(-1,"올바르지 않는 Leader, 팀이 없거나 팀장이 아님", CommonResponse.FAIL), HttpStatus.BAD_REQUEST);
 		}
-		
 		teamRepo.delete(leaderTeam); //자동적으로 teamMember, apply table instance 삭제됨
 		teamRepo.flush();
-		logger.info("----confirmDeleteTeam----");
+		logger.info("----confirmDeleteTeam   정상적으로 팀 삭제----");
 		return new ResponseEntity<>(new CommonResponse(0,"confirm delete team succ", CommonResponse.SUCC), HttpStatus.OK);
 	}
 	
