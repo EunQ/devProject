@@ -28,7 +28,7 @@ import com.ssafy.edu.dto.Repository;
 @Service
 public class RepositoryService {
 
-	private final String oauth = "47c2d70609eccf9cc166f2e2a7b78cad1971767d"; 
+	private final String oauth = "4d2b45986bcdcc140f471791325889e6583617ee"; 
 	public static final Logger logger = LoggerFactory.getLogger(RepositoryService.class);
 
 	@Autowired
@@ -40,7 +40,7 @@ public class RepositoryService {
 		repository.setName(name);
 		repository.setRprivate(false);
 		HttpHeaders headers = new HttpHeaders();
-		headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+		headers.setContentType(MediaType.APPLICATION_JSON);
 		headers.set("Authorization", "Bearer " + githubAccessToken);
 		Gson gson = new Gson();
 		HttpEntity<String> request = new HttpEntity<>(gson.toJson(repository).toString(), headers);
@@ -62,7 +62,7 @@ public class RepositoryService {
 	
 	public boolean checkRepositoryName(String name,String gitHubLogin, String githubAccessToken) {
 		HttpHeaders headers = new HttpHeaders();
-		headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+		headers.setContentType(MediaType.APPLICATION_JSON);
 		headers.set("Authorization", "Bearer " + githubAccessToken);
 		try {
 			HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(null, headers);
@@ -92,7 +92,7 @@ public class RepositoryService {
 		String addUrl = ownerName + "/" + repoName+"/commits";
 		Commit lastCommit = new Commit();
 		HttpHeaders headers = new HttpHeaders();
-		headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+		headers.setContentType(MediaType.APPLICATION_JSON);
 		headers.set("Authorization", "Bearer " + oauth);
 		try {
 			HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(null, headers);
@@ -115,7 +115,7 @@ public class RepositoryService {
 		String addUrl = ownerName + "/" + repoName+"/commits";
 		List<Commit> res = new ArrayList<Commit>();
 		HttpHeaders headers = new HttpHeaders();
-		headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+		headers.setContentType(MediaType.APPLICATION_JSON);
 		headers.set("Authorization", "Bearer " + oauth);
 		try {
 			HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(null, headers);
@@ -139,7 +139,7 @@ public class RepositoryService {
 		String addUrl = ownerName + "/" + repoName+"/commits";
 		logger.info("url - "  + addUrl);
 		HttpHeaders headers = new HttpHeaders();
-		headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+		headers.setContentType(MediaType.APPLICATION_JSON);
 		headers.set("Authorization", "Bearer " + oauth);
 		HashMap<String, Integer> res = new HashMap<>();
 		try {
