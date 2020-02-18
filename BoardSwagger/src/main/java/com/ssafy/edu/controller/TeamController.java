@@ -344,7 +344,7 @@ public class TeamController {
 	@DeleteMapping(value = "/confirm/{teamId}")
 	public ResponseEntity<CommonResponse> confirmDeleteTeam(@ApiParam(value = "back-end access token", required = true) @RequestHeader("x-access-token") String accessToken,
 			@ApiParam(value = "기존의 Team Id", required = true) @PathVariable int teamId) {
-		logger.info("--------confirmDeleteTeam---------");
+		logger.info("--------confirmDeleteTeam--------- teamid : " + teamId);
 		if(!jwtTokenService.validateToken(accessToken)) {
 			return new ResponseEntity<>(new CommonResponse(-1,"유효하지 않는 access-token", CommonResponse.FAIL), HttpStatus.BAD_REQUEST);
 		}
