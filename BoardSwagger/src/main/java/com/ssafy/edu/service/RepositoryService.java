@@ -28,7 +28,7 @@ import com.ssafy.edu.dto.Repository;
 @Service
 public class RepositoryService {
 
-	private final String oauth = "4d2b45986bcdcc140f471791325889e6583617ee"; 
+	private final String oauth = "f30da0585f8b6e799ae3ffbcac203d3c90332933"; 
 	public static final Logger logger = LoggerFactory.getLogger(RepositoryService.class);
 
 	@Autowired
