@@ -1,6 +1,7 @@
 package com.ssafy.edu.dto;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.CascadeType;
@@ -16,6 +17,8 @@ import javax.persistence.Transient;
 
 import org.hibernate.annotations.ColumnDefault;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -28,7 +31,7 @@ import lombok.ToString;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString
+@ToString(exclude = "teamMembers")
 public class Team implements Serializable {
 
 	static final public String STATE_READY = "READY";
@@ -59,6 +62,11 @@ public class Team implements Serializable {
 	@Column(name="team_name")
 	private String teamName;
 	
+
+	@OneToMany(mappedBy = "team",cascade = CascadeType.ALL)
+	@JsonBackReference
+    private List<TeamMember> teamMembers = new ArrayList<>();
+	
 	public void subMember() {
 		teamMemberNum--;
 	}
@@ -66,5 +74,6 @@ public class Team implements Serializable {
 	public void addMember() {
 		teamMemberNum++;
 	}
+	
 	
 }

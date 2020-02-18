@@ -16,6 +16,8 @@ import javax.persistence.Table;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -28,7 +30,7 @@ import lombok.ToString;
 @AllArgsConstructor
 @Setter
 @Getter
-@ToString
+@ToString(exclude = "team")
 public class TeamMember implements Serializable {
 	
 	@Id
@@ -40,8 +42,8 @@ public class TeamMember implements Serializable {
 	private String email;
 	
 	@ManyToOne(cascade = CascadeType.ALL)
-	@OnDelete(action = OnDeleteAction.CASCADE)
 	@JoinColumn(name="team_id")
+	@JsonManagedReference
 	private Team team;
 	
 	@Column(name = "role")
