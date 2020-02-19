@@ -129,6 +129,9 @@ public class TeamController {
 		}
 		Repository res = repositoryService.createRepository(repoName, member.getToken());
 		team.setGithubRepoUrl(res.getHtml_url());
+		teamRepo.save(team);
+		teamRepo.flush();
+		logger.info(team.toString());
 		return SingleResult.makeResponseEntity(0, "성공적으로 Repository 생성함", CommonResponse.SUCC, res, HttpStatus.OK);
 	}
 	
