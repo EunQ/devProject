@@ -48,10 +48,10 @@ public class RepositoryService {
 		logger.info(name +" , " + githubAccessToken);
 		try {
             // Request profile
-			logger.info(gson.toJson(repository).toString());
+			// logger.info(gson.toJson(repository).toString());
 			logger.info(request.toString());
             ResponseEntity<String> response = restTemplate.postForEntity("https://api.github.com/user/repos", request, String.class);
-            logger.info("response");
+            logger.info("-----------------response---------------------");
             if (response.getStatusCode() == HttpStatus.OK || response.getStatusCode() == HttpStatus.CREATED) {
                 return gson.fromJson(response.getBody(), Repository.class);
             }
