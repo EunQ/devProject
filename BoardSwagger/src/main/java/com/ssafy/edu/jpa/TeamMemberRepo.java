@@ -28,6 +28,6 @@ public interface TeamMemberRepo extends JpaRepository<TeamMember, Integer> {
 	List<TeamMember> findAllByTeam(Team team);
 	
 	
-	@Query(nativeQuery = true, value = "select count(*) from TeamMember tm where tm.team_id in (select apply.team_id from apply where apply.board_id = :board_id)")
+	@Query(nativeQuery = true, value = "select count(*) from team_member tm where tm.team_id in (select apply.team_id from apply where apply.board_id = :board_id)")
 	long countByBoardId(@Param("board_id") int boardId);
 }
