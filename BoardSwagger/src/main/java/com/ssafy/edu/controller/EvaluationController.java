@@ -270,11 +270,11 @@ public class EvaluationController {
 	//팀원 평가.
 	@ApiOperation(value="팀원 평가 하기.", notes="리턴 값으로 succ, fail")
 	@PostMapping(value = "/member")
-	public ResponseEntity<CommonResponse> createMember(@ApiParam(value = "백엔드 x-access-token", required = true) @RequestHeader("x-access-token") String accessToken, 
+	public ResponseEntity<CommonResponse> createMemberEvaluaion(@ApiParam(value = "백엔드 x-access-token", required = true) @RequestHeader("x-access-token") String accessToken, 
 		 	@ApiParam(value = "수정할 내용", required = true) @RequestBody UpdateEvaluationRequest request
 		 	){
-		logger.info("-------------------- createMember -------------------");
-		
+		logger.info("-------------------- createMemberEvaluaion -------------------");
+		logger.info(request.toString());
 		//유저 인증
 		if(!jwtTokenService.validateToken(accessToken)) {
 			//board_id나 repo_name이 null이거나 유효하지 않는 토큰이면 request가 올바르지 않다고. 
@@ -292,11 +292,11 @@ public class EvaluationController {
 		}
 		TeamMember toTeam = teamMemberRepo.findByEmailAndTeam(request.getToMemberId(), team).orElse(null);
 		if(toTeam == null) {
-			return CommonResponse.makeResponseEntity(-1, "team member가 아님니다.", CommonResponse.FAIL, HttpStatus.BAD_REQUEST);
+			return CommonResponse.makeResponseEntity(-1, "team member가 아님니다 toMember.", CommonResponse.FAIL, HttpStatus.BAD_REQUEST);
 		}
 		TeamMember fromTeam = teamMemberRepo.findByEmailAndTeam(email, team).orElse(null);
 		if(fromTeam == null) {
-			return CommonResponse.makeResponseEntity(-1, "team member가 아님니다.", CommonResponse.FAIL, HttpStatus.BAD_REQUEST);
+			return CommonResponse.makeResponseEntity(-1, "team member가 아님니다. fromMember", CommonResponse.FAIL, HttpStatus.BAD_REQUEST);
 		}
 		//유저 인증 완료
 		
