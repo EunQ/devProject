@@ -1,10 +1,13 @@
 package com.ssafy.edu.dto;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 import lombok.Getter;
@@ -24,8 +27,9 @@ public class Post {
 	@Column(name = "post_date")
 	private String postDate;
 	private String email;
-	@Column(name = "board_id")
-	private int boardId;
+	@ManyToOne(cascade = CascadeType.ALL)
+	@JoinColumn(name = "board_id")
+	private Board board;
 	
 	public Post() {
 		super();

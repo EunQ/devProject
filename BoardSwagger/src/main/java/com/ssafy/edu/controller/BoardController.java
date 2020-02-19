@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -70,7 +71,7 @@ public class BoardController {
 		List<BoardResponse> responseList = new ArrayList<>();
 		
 		for (Board board : boardList) {
-			Post post = postRepo.findOneByBoardId(board.getBoardId());
+			Post post = postRepo.findOneByBoard(board);
 			
 			responseList.add(new BoardResponse(
 					board.getBoardId(),
@@ -146,12 +147,13 @@ public class BoardController {
 		board.setPeopleNow(0);
 		boardRepo.save(board);
 		
-		int boardId = boardRepo.getBoardId();
-
+//		int boardId = boardRepo.getBoardId();
+		Board recentBoard = boardRepo.findRecentBoard();
+		
 		Post post = new Post();
 		post.setEmail(email);
 		post.setPostDate(now);
-		post.setBoardId(boardId);
+		post.setBoard(recentBoard);
 
 		postRepo.save(post);
 		postRepo.flush();
@@ -258,7 +260,7 @@ public class BoardController {
 		}
 		String imgurl = boardInDb.getImg();
 
-		Post delPost = postRepo.findOneByBoardId(boardId);
+		Post delPost = postRepo.findOneByBoard(boardInDb);
 		postRepo.delete(delPost);
 		boardRepo.delete(boardInDb);
 		bnr.setState("succ");
@@ -276,49 +278,6 @@ public class BoardController {
 		return new ResponseEntity<BoardNumberResult>(bnr, HttpStatus.OK);
 	}
 
-//	@ApiOperation(value = "참가하기", notes = "board_id(int), email(String)만 넣으면 됨", response = BoardNumberResult.class)
-//	@RequestMapping(value = "/applyBoard", method = RequestMethod.POST)
-//	public ResponseEntity<BoardNumberResult> applyBoard(@RequestBody Apply_board dto) throws Exception {
-//		System.out.println("================applyBoard================\t" + new Date());
-//
-//		BoardNumberResult bnr = new BoardNumberResult();
-//
-//		int bid = dto.getBoard_id();
-//
-//		Board b = service.getBoardByID(bid);
-//		int total_people = b.getPeopleNum();
-//		int now_people = b.getPeopleNow();
-//
-//		bnr.setName("applyBoard");
-//		bnr.setNumber(now_people);
-//
-//		if (total_people <= now_people) {
-//			bnr.setState("fail");
-//			return new ResponseEntity<BoardNumberResult>(bnr, HttpStatus.BAD_REQUEST);
-//		}
-//		SimpleDateFormat dateformat = new SimpleDateFormat("yyyyMMdd");
-//		String now = dateformat.format(new Date());
-//
-//		Apply apl = new Apply();
-//		apl.setApply_date(now);
-//		apl.setEmail(dto.getEmail());
-//		service.addApply(apl);
-//
-//		int aid = service.getBoardId(); // AI된 Apply_id 값
-//
-//		Apply_board ab = new Apply_board();
-//		ab.setApply_id(aid);
-//		ab.setBoard_id(bid);
-//		ab.setEmail(dto.getEmail());
-//		service.addApplyBoard(ab);
-//
-//		now_people += 1;
-//		b.setPeopleNow(now_people);
-//		service.updateBoard(b);
-//
-//		return new ResponseEntity<BoardNumberResult>(bnr, HttpStatus.OK);
-//	}
-
 	@ApiOperation(value = "게시글 검색(제목)", response = List.class)
 	@RequestMapping(value = "/searchBoardByTitle/{keyword}", method = RequestMethod.GET)
 	public ResponseEntity<List<Board>> searchBoardByTitle(@PathVariable String keyword) throws Exception {
@@ -331,5 +290,15 @@ public class BoardController {
 			return new ResponseEntity(HttpStatus.NO_CONTENT);
 		}
 		return new ResponseEntity<List<Board>>(searchList, HttpStatus.OK);
+	}
+	
+	@GetMapping(value = "/getEndBoardList")
+	public ResponseEntity<List<Board>> getEndBoardList(){
+		
+		
+//		List<Board> endBoardList = boardRepo.findAllEndBoard();
+		
+		
+		return null;
 	}
 }

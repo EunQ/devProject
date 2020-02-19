@@ -23,4 +23,7 @@ public interface BoardRepo extends JpaRepository<Board, Integer>{
 	
 	@Query(nativeQuery = true, value = "select * from Board b where b.board_id in (select p.board_id from Post p where p.email = :email)")
 	List<Board> findAllByHostEmail(@Param("email") String email);
+	
+	@Query(nativeQuery = true, value = "select * from board order by board_id desc limit 1")
+	Board findRecentBoard();
 }

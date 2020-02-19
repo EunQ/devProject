@@ -4,15 +4,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.ssafy.edu.dto.Apply;
+import com.ssafy.edu.dto.Board;
 import com.ssafy.edu.dto.Post;
 import com.ssafy.edu.dto.Team;
 import com.ssafy.edu.jpa.ApplyRepo;
+import com.ssafy.edu.jpa.BoardRepo;
 import com.ssafy.edu.jpa.PostRepo;
 import com.ssafy.edu.jpa.TeamRepo;
 
 @Service
 public class HostService {
 	
+	@Autowired
+	private BoardRepo boardRepo;
 
 	@Autowired
 	private PostRepo postRepo;
@@ -28,7 +32,8 @@ public class HostService {
 		// sponser id, board_id에 해당하는 Post를 찾는다.
 		// team_id, board_id에 해당하는 apply를 찾는다.
 		// 둘다 있으면 true;
-		Post post = postRepo.findOneByEmailAndBoardId(hostEmail, boardId);
+		Board board = boardRepo.findOneByBoardId(boardId).orElse(null);
+		Post post = postRepo.findOneByEmailAndBoard(hostEmail, board);
 		Team team = teamRepo.findByTeamId(teamId).orElse(null);
 		if(team == null || post == null) {
 			return false;
@@ -44,7 +49,8 @@ public class HostService {
 		// 공모전을 올린사람이 hostEmail인지 확인.
 		// sponser id, board_id에 해당하는 Post를 찾는다.
 		// 없으면 null
-		Post post = postRepo.findOneByEmailAndBoardId(hostEmail, boardId);
+		Board board = boardRepo.findOneByBoardId(boardId).orElse(null);
+		Post post = postRepo.findOneByEmailAndBoard(hostEmail, board);
 		if(post == null) {
 			return false;
 		}
