@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.ssafy.edu.dto.Team;
@@ -28,5 +29,5 @@ public interface TeamMemberRepo extends JpaRepository<TeamMember, Integer> {
 	
 	
 	@Query(nativeQuery = true, value = "select count(*) from TeamMember tm where tm.team_id in (select apply.team_id from apply where apply.board_id = :board_id)")
-	long countByBoardId(int boardId);
+	long countByBoardId(@Param("board_id") int boardId);
 }
