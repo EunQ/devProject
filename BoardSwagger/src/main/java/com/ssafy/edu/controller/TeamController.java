@@ -127,6 +127,7 @@ public class TeamController {
 		if(!check) {
 			return SingleResult.makeResponseEntity(-1, "Repository 이름이 유효하지 않음.", CommonResponse.FAIL, null, HttpStatus.BAD_REQUEST);
 		}
+		logger.info("-----------------create repo ---------------------");
 		Repository res = repositoryService.createRepository(repoName, member.getToken());
 		team.setGithubRepoUrl(res.getHtml_url());
 		teamRepo.save(team);

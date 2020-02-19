@@ -73,7 +73,7 @@ public class RepositoryService {
             	Gson gson = new Gson();
             	Repository[] repositories = gson.fromJson(response.getBody(), Repository[].class);
             	for(Repository respo : repositories) {
-            		logger.info(respo.getName() + " = " + name + " , " + respo.getName().equals(name));
+            		//logger.info(respo.getName() + " = " + name + " , " + respo.getName().equals(name));
             		if(respo.getName().equals(name)) {
             			logger.info("return false");
             			return false;
