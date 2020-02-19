@@ -26,4 +26,9 @@ public interface BoardRepo extends JpaRepository<Board, Integer>{
 	
 	@Query(nativeQuery = true, value = "select * from board order by board_id desc limit 1")
 	Board findRecentBoard();
+
+	@Query(nativeQuery = true, value = "select * from board where end < :now")
+	List<Board> findAllEndBoard(String now);
+	
+	
 }

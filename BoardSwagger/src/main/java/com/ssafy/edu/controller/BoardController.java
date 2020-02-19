@@ -24,11 +24,14 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ssafy.edu.dto.Apply;
 import com.ssafy.edu.dto.Board;
 import com.ssafy.edu.dto.Board_email;
 import com.ssafy.edu.dto.Member;
 import com.ssafy.edu.dto.Post;
+import com.ssafy.edu.dto.Team;
 import com.ssafy.edu.help.BoardNumberResult;
+import com.ssafy.edu.jpa.ApplyRepo;
 import com.ssafy.edu.jpa.BoardRepo;
 import com.ssafy.edu.jpa.MemberRepo;
 import com.ssafy.edu.jpa.PostRepo;
@@ -56,6 +59,8 @@ public class BoardController {
 	@Autowired
 	private MemberRepo memberRepo;
 	
+	@Autowired
+	private ApplyRepo applyRepo;
 
 	@ApiOperation(value = "모든 게시판 정보를 가져온다.", response = List.class)
 	@RequestMapping(value = "/getBoard", method = RequestMethod.GET)
@@ -295,10 +300,23 @@ public class BoardController {
 	@GetMapping(value = "/getEndBoardList")
 	public ResponseEntity<List<Board>> getEndBoardList(){
 		
+		SimpleDateFormat dateformat = new SimpleDateFormat("yyyy-MM-dd");
+		String now = dateformat.format(new Date());
 		
-//		List<Board> endBoardList = boardRepo.findAllEndBoard();
+		List<Board> endBoardList = boardRepo.findAllEndBoard(now);
 		
-		
-		return null;
+		return new ResponseEntity<List<Board>>(endBoardList, HttpStatus.OK);
 	}
+	
+	@GetMapping(value = "/getFullTeam/{boardId}")
+	public ResponseEntity<List<Team>> getFullTeam(@PathVariable int boardId){
+		List<Apply> applyList = applyRepo.findAllByBoardId(boardId);
+		
+		List<Team> teamList = new ArrayList<>();
+		for (Apply apply : applyList) {
+			teamList.add(apply.getTeam());
+		}
+		return new ResponseEntity<List<Team>>(teamList, HttpStatus.OK);
+	}
+	
 }
