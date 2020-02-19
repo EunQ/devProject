@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import com.ssafy.edu.dto.Team;
@@ -24,4 +25,8 @@ public interface TeamMemberRepo extends JpaRepository<TeamMember, Integer> {
 	
 	//accpet와 상관없이 해당 team에서 요청을 보낸 TeamMember를 다 출력.
 	List<TeamMember> findAllByTeam(Team team);
+	
+	
+	@Query(nativeQuery = true, value = "select count(*) from TeamMember tm where tm.team_id in (select apply.team_id from apply where apply.board_id = :board_id)")
+	long countByBoardId(int boardId);
 }

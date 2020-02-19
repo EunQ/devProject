@@ -18,6 +18,7 @@ import com.ssafy.edu.dto.Board;
 import com.ssafy.edu.dto.Team;
 import com.ssafy.edu.jpa.BoardRepo;
 import com.ssafy.edu.jpa.PostRepo;
+import com.ssafy.edu.jpa.TeamMemberRepo;
 import com.ssafy.edu.jpa.TeamRepo;
 import com.ssafy.edu.response.CommonResponse;
 import com.ssafy.edu.service.HostService;
@@ -52,6 +53,9 @@ public class HostController {
 	@Autowired
 	private BoardRepo boardRepo;
 	
+	@Autowired
+	private TeamMemberRepo teamMemberRepo;
+	
 
 	@ApiOperation(value="주최한 공모전을 전부 표시", notes="공모전 전부 표시")
 	@PatchMapping(value = "boards/{email}")
@@ -77,6 +81,16 @@ public class HostController {
 		//이제까지 확정을 하지 않는 팀은 그냥 삭제
 		teamRepo.deleteAllByBoardIdAndReady(boardId);
 		teamRepo.flush();
+		
+		//teamMemberRepo.count
+		int peopleNow = (int) teamMemberRepo.countByBoardId(boardId);
+		Board board =  boardRepo.findById(boardId).orElse(null);
+		board.setPeopleNow(peopleNow);
+		boardRepo.save(board);
+		boardRepo.flush();
+		logger.info("board peoplenoe update ");
+		logger.info(board.toString());
+		
 		return CommonResponse.makeResponseEntity(0, "팀들의 상태가 RUN인것들만 남김.", CommonResponse.SUCC, HttpStatus.OK);
 	}
 	
