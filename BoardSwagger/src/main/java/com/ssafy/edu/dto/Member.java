@@ -10,8 +10,13 @@ import javax.persistence.Table;
 import org.hibernate.annotations.ColumnDefault;
 import org.springframework.data.annotation.Persistent;
 
+import lombok.Getter;
+import lombok.Setter;
+
 @Entity
 @Table( name = "cmember")
+@Getter
+@Setter
 public class Member implements Serializable{
 	
 	@Id
@@ -62,84 +67,4 @@ public class Member implements Serializable{
     public void prePersist() {
         this.auth = this.auth == null ? "USER" : this.auth;
     }
-
-	public String getEmail() {
-		return email;
-	}
-
-	public void setEmail(String email) {
-		this.email = email;
-	}
-
-	public String getPwd() {
-		return pwd;
-	}
-
-	public void setPwd(String pwd) {
-		this.pwd = pwd;
-	}
-
-	public String getPhone() {
-		return phone;
-	}
-
-	public void setPhone(String phone) {
-		this.phone = phone;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public String getAuth() {
-		return auth;
-	}
-
-	public void setAuth(String auth) {
-		this.auth = auth;
-	}
-
-	public String getJob() {
-		return job;
-	}
-
-	public void setJob(String job) {
-		this.job = job;
-	}
-
-	public String getToken() {
-		return token;
-	}
-
-	public void setToken(String token) {
-		this.token = token;
-	}
-
-	public String getInfo() {
-		return info;
-	}
-
-	public void setInfo(String info) {
-		this.info = info;
-	}
-
-	public String getBirth() {
-		return birth;
-	}
-
-	public void setBirth(String birth) {
-		this.birth = birth;
-	}
-
-	public String getGithub() {
-		return github;
-	}
-
-	public void setGithub(String github) {
-		this.github = github;
-	}
 }

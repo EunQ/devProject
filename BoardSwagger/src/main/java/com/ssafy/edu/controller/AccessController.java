@@ -108,6 +108,10 @@ public class AccessController {
             	Member member = memberRepo.findByEmail(email).orElse(null);
             	if(member != null) {
             		res.setLogin_access_token(jwtTokenService.createToken(member.getEmail(), member.getAuth()));
+            		//github accessToken update
+            		member.setToken(map.get("access_token"));
+            		memberRepo.save(member);
+            		memberRepo.flush();
             	}
                 return res;
             }
