@@ -3,6 +3,8 @@ package com.ssafy.edu.jpa;
 import java.util.List;
 import java.util.Optional;
 
+import javax.transaction.Transactional;
+
 import org.hibernate.annotations.NamedNativeQuery;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -43,6 +45,7 @@ public interface TeamRepo extends JpaRepository<Team, Integer>{
 //	List<TeamWithApply> findAllTeamWithApplyByBoardId(@Param("board_id") Integer board_id);
 	
 	@Modifying
+	@Transactional
 	@Query(nativeQuery = true, value="delete from Team where Team.team_state = 'READY' and Team.team_id in (select apply.team_id from apply where apply.board_id = :board_id)")
 	void deleteAllByBoardIdAndReady(@Param("board_id") int boardId);
 	
