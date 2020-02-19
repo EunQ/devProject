@@ -1,15 +1,19 @@
 package com.ssafy.edu.controller;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.jsoup.internal.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -312,7 +316,7 @@ public class TeamController {
 	@PatchMapping(value = "/confirm/{teamId}")
 	public ResponseEntity<CommonResponse> confirmTeam(@ApiParam(value = "back-end access token", required = true) @RequestHeader("x-access-token") String accessToken,
 			@ApiParam(value = "기존의 Team Id", required = true) @PathVariable int teamId) {
-		logger.info("----confirmTeam----");
+		logger.info("----confirmTeam----  " + teamId);
 		if(!jwtTokenService.validateToken(accessToken)) {
 			return new ResponseEntity<>(new CommonResponse(-1,"유효하지 않는 access-token", CommonResponse.FAIL), HttpStatus.BAD_REQUEST);
 		}
@@ -335,8 +339,11 @@ public class TeamController {
 		
 		//여기서 아직 accept 요청이 남은 teamMember는 삭제한다.
 		List<TeamMember> tms = teamMemberRepo.findAllByTeamAndAccept(leaderTeam, TeamMember.ACCEPT_STATE_READY);
-		teamMemberRepo.deleteAll(tms);
-		teamMemberRepo.flush();
+		logger.info(StringUtil.join(tms, " | "));
+		for(int i=0;i<tms.size();i++) {
+			teamMemberRepo.delete(tms.get(i));
+		}
+		teamMemberRepo.flush();			
 		return new ResponseEntity<>(new CommonResponse(0,"confirm team succ", CommonResponse.SUCC), HttpStatus.OK);
 	}
 	
@@ -558,12 +565,13 @@ public class TeamController {
 	}
 	
 	@ApiOperation(value = "repository의 readme 추출")
-	@GetMapping(value = "/getMarkDown/{repository}" )
-	public ResponseEntity<String> getMarkDown(@PathVariable String repository){
+	@GetMapping(value = "/getMarkDown/{user}/{repository}" )
+	public ResponseEntity<String> getMarkDown(@PathVariable String user, @PathVariable String repository){
+		String url = "https://github.com/" + user + "/" + repository;
 		// repository 정보 가져온 후 html_url 추출 필요
 		CrawlService crawl = new CrawlService();
-		String readMe = crawl.goCrawling(repository);
+		String readMe = crawl.goCrawling(url);
 		
-		return new ResponseEntity<String>(readMe,HttpStatus.OK);
+		return new ResponseEntity<String>(readMe, HttpStatus.OK);
 	}
 }

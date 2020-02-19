@@ -2,6 +2,7 @@ package com.ssafy.edu.controller;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -30,6 +31,7 @@ import com.ssafy.edu.help.BoardNumberResult;
 import com.ssafy.edu.jpa.BoardRepo;
 import com.ssafy.edu.jpa.MemberRepo;
 import com.ssafy.edu.jpa.PostRepo;
+import com.ssafy.edu.response.BoardResponse;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -56,7 +58,7 @@ public class BoardController {
 
 	@ApiOperation(value = "모든 게시판 정보를 가져온다.", response = List.class)
 	@RequestMapping(value = "/getBoard", method = RequestMethod.GET)
-	public ResponseEntity<List<Board>> getBoard(HttpServletRequest request) throws Exception {
+	public ResponseEntity<List<BoardResponse>> getBoard(HttpServletRequest request) throws Exception {
 
 		System.out.println(
 				"   IP Log : " + request.getRemoteHost() + "   " + "ACTION : " + "getBoard" + "\t" + new Date());
@@ -65,7 +67,29 @@ public class BoardController {
 		if (boardList.isEmpty()) {
 			return new ResponseEntity(HttpStatus.NO_CONTENT);
 		}
-		return new ResponseEntity<List<Board>>(boardList, HttpStatus.OK);
+		List<BoardResponse> responseList = new ArrayList<>();
+		
+		for (Board board : boardList) {
+			Post post = postRepo.findOneByBoardId(board.getBoardId());
+			
+			responseList.add(new BoardResponse(
+					board.getBoardId(),
+					board.getTitle(),
+					board.getHost(),
+					board.getApplyStart(),
+					board.getApplyEnd(),
+					board.getStart(),
+					board.getEnd(),
+					board.getPeopleNum(),
+					board.getPrice(),
+					board.getLocation(),
+					board.getInfo(),
+					board.getImg(),
+					board.getPeopleNow(),
+					post.getPostDate()));
+			
+		}
+		return new ResponseEntity<List<BoardResponse>>(responseList, HttpStatus.OK);
 	}
 
 	@ApiOperation(value = "게시글 추가", response = BoardNumberResult.class)
@@ -94,7 +118,7 @@ public class BoardController {
 
 		Member m = memberRepo.findByEmail(email).orElse(null);
 		
-		SimpleDateFormat dateformat = new SimpleDateFormat("yyyyMMdd");
+		SimpleDateFormat dateformat = new SimpleDateFormat("yyyy-MM-dd");
 		String now = dateformat.format(new Date());
 
 		if (!file.isEmpty()) {

@@ -41,7 +41,7 @@ public class TeamMember implements Serializable {
 	@Column(name ="email")
 	private String email;
 	
-	@ManyToOne(cascade = CascadeType.ALL)
+	@ManyToOne
 	@JoinColumn(name="team_id")
 	@JsonManagedReference
 	private Team team;

@@ -309,7 +309,7 @@ public class EvaluationController {
 		me.setTeamId(request.getTeamId());
 		me.setFromMember(email);
 		memberEvaluationRepo.save(me);
-		return CommonResponse.makeResponseEntity(0, "성공적으로 수정함", CommonResponse.SUCC, HttpStatus.OK);
+		return CommonResponse.makeResponseEntity(0, "성공적으로 평가함", CommonResponse.SUCC, HttpStatus.OK);
 	}
 	
 }
