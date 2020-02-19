@@ -199,6 +199,7 @@ public class MemberController {
 		mnr.setName(token);
 		mnr.setState("succ");
 
+        logger.info("local login success - " + m.toString());
 		return new ResponseEntity<MemberNumberResult>(mnr, HttpStatus.OK);
 	}
 	
@@ -273,7 +274,7 @@ public class MemberController {
         	return new LoginResponse(1, "social login fail", "fail");
         }
 //        service.changeMemberInfo(member);
-        
+        logger.info("social login success - " + member.toString());
         LoginResponse res = new LoginResponse(0, "social login success", CommonResponse.SUCC);
         res.setAccessToken(jwtTokenService.createToken(member.getEmail(), member.getAuth()));
         return res;

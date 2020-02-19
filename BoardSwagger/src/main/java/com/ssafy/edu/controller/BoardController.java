@@ -313,9 +313,14 @@ public class BoardController {
 		List<Apply> applyList = applyRepo.findAllByBoardId(boardId);
 		
 		List<Team> teamList = new ArrayList<>();
+		
 		for (Apply apply : applyList) {
-			teamList.add(apply.getTeam());
+			if(apply.getTeam().getTeamState().equals("FULL"))
+				teamList.add(apply.getTeam());
 		}
+		if(teamList.size() == 0)
+			return new ResponseEntity(HttpStatus.NO_CONTENT);
+		
 		return new ResponseEntity<List<Team>>(teamList, HttpStatus.OK);
 	}
 	
