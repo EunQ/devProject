@@ -10,6 +10,8 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -32,6 +34,7 @@ public class Apply {
 	
 	@ManyToOne(cascade = CascadeType.ALL)
 	@JoinColumn(name="team_id")
+	@JsonManagedReference
 	private Team team;
 	
 	@Column(name = "apply_date")

@@ -68,6 +68,12 @@ public class Team implements Serializable {
 	@ToString.Exclude
     private List<TeamMember> teamMembers = new ArrayList<>();
 	
+
+	@OneToMany(mappedBy = "team",cascade = CascadeType.ALL)
+	@JsonBackReference
+	@ToString.Exclude
+    private List<Apply> applys = new ArrayList<>();
+	
 	public void subMember() {
 		teamMemberNum--;
 	}

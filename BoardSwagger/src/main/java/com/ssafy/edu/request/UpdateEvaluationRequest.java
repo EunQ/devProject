@@ -12,6 +12,8 @@ import lombok.ToString;
 @Getter
 @ToString
 public class UpdateEvaluationRequest {
+	private String toMemberId;
+	private int teamId;
 	private int score;
 	private String info;
 }

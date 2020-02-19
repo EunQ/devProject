@@ -21,10 +21,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.ssafy.edu.dto.Member;
 import com.ssafy.edu.dto.MemberEvaluation;
+import com.ssafy.edu.dto.Team;
 import com.ssafy.edu.dto.TeamEvaluation;
+import com.ssafy.edu.dto.TeamMember;
 import com.ssafy.edu.jpa.MemberEvaluationRepo;
 import com.ssafy.edu.jpa.MemberRepo;
 import com.ssafy.edu.jpa.TeamEvaluationRepo;
+import com.ssafy.edu.jpa.TeamMemberRepo;
 import com.ssafy.edu.jpa.TeamRepo;
 import com.ssafy.edu.request.EvaluateTeamRequest;
 import com.ssafy.edu.request.UpdateEvaluationRequest;
@@ -62,6 +65,9 @@ public class EvaluationController {
 	
 	@Autowired
 	private TeamRepo teamRepo;
+	
+	@Autowired
+	private TeamMemberRepo teamMemberRepo;
 	
 	@ApiOperation(value="주최가가 해당 팀을 평가한다.", notes="리턴 값으로 succ, fail을 출력한다.")
 	@PostMapping(value = "/host")
@@ -263,9 +269,8 @@ public class EvaluationController {
 	
 	//팀원 평가.
 	@ApiOperation(value="팀원 평가 하기.", notes="리턴 값으로 succ, fail")
-	@PostMapping(value = "/member/{toMemberId}")
-	public ResponseEntity<CommonResponse> createMember(@ApiParam(value = "백엔드 x-access-token", required = true) @RequestHeader("x-access-token") String accessToken,
-		 	@ApiParam(value = "평가할 사람 id", required = true) @PathVariable("toMemberId") String toMemberId,
+	@PostMapping(value = "/member")
+	public ResponseEntity<CommonResponse> createMember(@ApiParam(value = "백엔드 x-access-token", required = true) @RequestHeader("x-access-token") String accessToken, 
 		 	@ApiParam(value = "수정할 내용", required = true) @RequestBody UpdateEvaluationRequest request
 		 	){
 		logger.info("-------------------- createMember -------------------");
@@ -281,6 +286,18 @@ public class EvaluationController {
 			//유저에 대한 정보가 없으면.
 			return CommonResponse.makeResponseEntity(-1, "token email이 존재하지 않음", CommonResponse.FAIL, HttpStatus.BAD_REQUEST);
 		}
+		Team team = teamRepo.findById(request.getTeamId()).orElse(null);
+		if(team == null) {
+			return CommonResponse.makeResponseEntity(-1, "team이 존재하지 않음", CommonResponse.FAIL, HttpStatus.BAD_REQUEST);
+		}
+		TeamMember toTeam = teamMemberRepo.findByEmailAndTeam(request.getToMemberId(), team).orElse(null);
+		if(toTeam == null) {
+			return CommonResponse.makeResponseEntity(-1, "team member가 아님니다.", CommonResponse.FAIL, HttpStatus.BAD_REQUEST);
+		}
+		TeamMember fromTeam = teamMemberRepo.findByEmailAndTeam(email, team).orElse(null);
+		if(fromTeam == null) {
+			return CommonResponse.makeResponseEntity(-1, "team member가 아님니다.", CommonResponse.FAIL, HttpStatus.BAD_REQUEST);
+		}
 		//유저 인증 완료
 		
 		MemberEvaluation me = new MemberEvaluation();
@@ -288,7 +305,8 @@ public class EvaluationController {
 		me.setEDate(dateFomat.format(new Date()));
 		me.setInfo(request.getInfo());
 		me.setScore(request.getScore());
-		me.setToMember(toMemberId);
+		me.setToMember(request.getToMemberId());
+		me.setTeamId(request.getTeamId());
 		me.setFromMember(email);
 		memberEvaluationRepo.save(me);
 		return CommonResponse.makeResponseEntity(0, "성공적으로 수정함", CommonResponse.SUCC, HttpStatus.OK);
