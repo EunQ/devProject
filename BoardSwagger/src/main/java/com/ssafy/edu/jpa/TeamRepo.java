@@ -43,7 +43,7 @@ public interface TeamRepo extends JpaRepository<Team, Integer>{
 //	List<TeamWithApply> findAllTeamWithApplyByBoardId(@Param("board_id") Integer board_id);
 	
 	@Modifying
-	@Query(nativeQuery = true, value="delete from Team t where t.state = 'READY' and t.team_id in (select apply.team_id from apply where apply.board_id = :board_id)")
+	@Query(nativeQuery = true, value="delete from Team where Team.team_state = 'READY' and Team.team_id in (select apply.team_id from apply where apply.board_id = :board_id)")
 	void deleteAllByBoardIdAndReady(@Param("board_id") int boardId);
 	
 //	@Modifying

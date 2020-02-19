@@ -81,7 +81,7 @@ public class HostController {
 		//이제까지 확정을 하지 않는 팀은 그냥 삭제
 		teamRepo.deleteAllByBoardIdAndReady(boardId);
 		teamRepo.flush();
-		
+		logger.info("-----------delete after -------");
 		//teamMemberRepo.count
 		int peopleNow = (int) teamMemberRepo.countByBoardId(boardId);
 		Board board =  boardRepo.findById(boardId).orElse(null);
