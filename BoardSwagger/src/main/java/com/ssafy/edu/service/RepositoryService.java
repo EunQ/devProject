@@ -129,7 +129,7 @@ public class RepositoryService {
             }
         } catch (Exception e) {
         	logger.error(e.toString());
-            throw null;
+            return null;
         }
         return null;
 	}
