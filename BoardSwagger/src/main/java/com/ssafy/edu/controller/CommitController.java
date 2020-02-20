@@ -125,7 +125,7 @@ public class CommitController {
 		}
 		return SingleResult.makeResponseEntity(0, "{usr , cnt} List 입니다.", CommonResponse.SUCC, res, HttpStatus.OK);
 	}
-	
+
 	@ApiOperation(value = "commit user들 보기", notes = "해당 team의 repository의 유저들의 커밋들을 보기")
 	@GetMapping(value = "/users/url")
 	public ResponseEntity<SingleResult<HashMap<String, Integer>>> getUsersCommitsByUrl(

@@ -47,7 +47,7 @@ import io.swagger.annotations.ApiOperation;
 public class BoardController {
 
 	public static final String awsSaveFolder = "/home/ubuntu/image/";
-	public static final String awsUrl = "http://13.209.18.235:8197/image/";
+	public static final String awsUrl = "https://https://i02b107.p.ssafy.io/spring/image/";
 	public static final Logger logger = LoggerFactory.getLogger(BoardController.class);
 	
 	@Autowired

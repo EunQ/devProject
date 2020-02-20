@@ -528,10 +528,11 @@ public class TeamController {
 		
 		return new ResponseEntity<>(new CommonResponse(0,"accept Team succ", CommonResponse.SUCC), HttpStatus.OK);
 	}
-	@ApiOperation(value="팀원으로서 accept부분을 하는 부분.", notes="리턴 값으로 succ, fail을 출력한다.")
+	@ApiOperation(value="팀원으로서 accept refuse부분을 하는 부분.", notes="리턴 값으로 succ, fail을 출력한다.")
 	@DeleteMapping(value = "/refuse/{teamMemberId}")
 	public ResponseEntity<CommonResponse> refuseTeamMember(@ApiParam(value = "back-end access token", required = true) @RequestHeader("x-access-token") String accessToken,
 			@ApiParam(value = "teamMember id [팀원의 정보가 저장되어있는 id]", required = true) @PathVariable int teamMemberId) {
+		logger.info("accept refues--------------- " + teamMemberId);
 		if(!jwtTokenService.validateToken(accessToken)) {
 			return new ResponseEntity<>(new CommonResponse(-1,"유효하지 않는 access-token", CommonResponse.FAIL), HttpStatus.BAD_REQUEST);
 		}
