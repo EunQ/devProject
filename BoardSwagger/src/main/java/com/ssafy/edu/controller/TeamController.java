@@ -516,6 +516,8 @@ public class TeamController {
 			return new ResponseEntity<>(new CommonResponse(-1,"권한이 없는 email", CommonResponse.FAIL), HttpStatus.BAD_REQUEST);
 		}
 		
+		
+		//여기만 설정하면 된다.
 		tm.setAccept(1);
 		teamMemberRepo.save(tm);
 		teamMemberRepo.flush();
@@ -547,6 +549,7 @@ public class TeamController {
 			return new ResponseEntity<>(new CommonResponse(-1,"권한이 없는 email", CommonResponse.FAIL), HttpStatus.BAD_REQUEST);
 		}
 		
+		//여기만 지우면 된다.
 		teamMemberRepo.delete(tm);
 		teamMemberRepo.flush();
 		
