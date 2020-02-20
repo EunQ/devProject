@@ -133,6 +133,10 @@ public class TeamController {
 		teamRepo.save(team);
 		teamRepo.flush();
 		logger.info(team.toString());
+		boolean readMeRes = repositoryService.createReadMe(res.getHtml_url(), member.getToken());
+		if(readMeRes == false) {
+			logger.info("---README 생성 실패--");
+		}
 		return SingleResult.makeResponseEntity(0, "성공적으로 Repository 생성함", CommonResponse.SUCC, res, HttpStatus.OK);
 	}
 	

@@ -12,6 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -136,4 +138,19 @@ public class CommitController {
 		}
 		return SingleResult.makeResponseEntity(0, "{usr , cnt} List 입니다.", CommonResponse.SUCC, res, HttpStatus.OK);
 	}
+	
+	//createReadMe
+//	@ApiOperation(value = "create readMe", notes = "해당 url에 readme.md 파일만들기")
+//	@PostMapping(value = "/create/readMe")
+//	public ResponseEntity<CommonResponse> createReadMe(
+//			@ApiParam(value = "github accessToken", required = true) @RequestHeader String githubAccessToken,
+//			@ApiParam(value = "해당 url", required = true) @RequestParam String url
+//			) {
+//		logger.info("================createReadMe================\t" + url);
+//		boolean res = repositoryService.createReadMe(url, githubAccessToken);
+//		if(res == false) {
+//			return CommonResponse.makeResponseEntity(-1, "readme 생성실패", CommonResponse.FAIL,  HttpStatus.OK);
+//		}
+//		return CommonResponse.makeResponseEntity(0, "생성", CommonResponse.SUCC, HttpStatus.OK);
+//	}
 }

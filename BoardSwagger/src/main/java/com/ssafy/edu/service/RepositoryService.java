@@ -1,6 +1,7 @@
 package com.ssafy.edu.service;
 
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -15,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
@@ -25,6 +27,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.ssafy.edu.dto.Commit;
 import com.ssafy.edu.dto.Repository;
+import com.ssafy.edu.request.ReadMeRequest;
 
 @Service
 public class RepositoryService {
@@ -85,6 +88,31 @@ public class RepositoryService {
             throw new RuntimeException("github/repo 이상");
         }
         throw new RuntimeException("github/repo 이상");
+	}
+	
+	public boolean createReadMe(String url, String githubAccessToken) {
+		String ownerName = getRepoOwnerByUrl(url);
+		String repoName = getRepoNameByUrl(url);
+		String addUrl = ownerName + "/" + repoName+"/contents/README.md";
+		HttpHeaders headers = new HttpHeaders();
+		ReadMeRequest readMeRequest = new ReadMeRequest();
+		readMeRequest.setMessage("read me commit");
+		String content = "Create Repo";
+		readMeRequest.setContent(Base64.getEncoder().encodeToString(content.getBytes()));
+		headers.setContentType(MediaType.APPLICATION_JSON);
+		headers.set("Authorization", "Bearer " + githubAccessToken);
+		try {
+			Gson gson = new Gson();
+			HttpEntity<String> request = new HttpEntity<>(gson.toJson(readMeRequest).toString(), headers);
+			logger.info("craete readMe in "+repoName);
+            ResponseEntity<String> response = restTemplate.exchange("https://api.github.com/repos/"+addUrl, HttpMethod.PUT, request, String.class);
+            if (response.getStatusCode() == HttpStatus.CREATED) {
+            	return true;
+            }
+        } catch (Exception e) {
+            return false;
+        }
+        return false;
 	}
 	
 	public Commit getLastCommit(String url) {
