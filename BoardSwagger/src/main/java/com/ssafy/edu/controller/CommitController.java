@@ -72,7 +72,7 @@ public class CommitController {
 			@ApiParam(value = "해당 팀 id", required = true) @PathVariable int teamId,
 			@ApiParam(value = "해당 Commit 개수", required = true) @PathVariable int listNum
 			) {
-		logger.info("================getLastCommitNum================\t" + new Date());
+		logger.info("================getLastCommitNum================\t" + teamId + '\t' + listNum);
 		Team team =  teamRepo.findByTeamId(teamId).orElse(null);
 		if(team == null || team.getGithubRepoUrl() == null) {
 			return SingleResult.makeResponseEntity(-1, "팀이 없거나 팀 Repository가 없습니다.", CommonResponse.FAIL, null, HttpStatus.BAD_REQUEST);

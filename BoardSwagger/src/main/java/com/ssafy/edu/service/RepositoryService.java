@@ -128,7 +128,6 @@ public class RepositoryService {
             	return res;
             }
         } catch (Exception e) {
-        	logger.error(e.toString());
             return null;
         }
         return null;
