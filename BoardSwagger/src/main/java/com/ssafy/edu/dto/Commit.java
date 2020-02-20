@@ -55,7 +55,7 @@ public class Commit implements Serializable {
 		JsonElement tree = parser.parse(response);
 		if(!tree.isJsonArray()) {
 			System.out.println("array fail");
-//			return null;
+			return null;
 		}
 		JsonArray list = tree.getAsJsonArray();
 		num = Math.min(num, list.size());
