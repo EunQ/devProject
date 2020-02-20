@@ -7,24 +7,17 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.repository.query.Param;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.ssafy.edu.dto.Board;
-import com.ssafy.edu.dto.Comment;
 import com.ssafy.edu.dto.Commit;
 import com.ssafy.edu.dto.Team;
-import com.ssafy.edu.help.BoardNumberResult;
-import com.ssafy.edu.help.CommentNumberResult;
 import com.ssafy.edu.jpa.TeamRepo;
 import com.ssafy.edu.response.CommonResponse;
 import com.ssafy.edu.response.SingleResult;
@@ -61,7 +54,7 @@ public class CommitController {
 		
 		Commit lastCommit = repositoryService.getLastCommit(team.getGithubRepoUrl());
 		if(lastCommit == null) {
-			return SingleResult.makeResponseEntity(-1, "commit이 없습니다.", CommonResponse.FAIL, null, HttpStatus.BAD_REQUEST);
+			return SingleResult.makeResponseEntity(-1, "commit이 없습니다.", CommonResponse.FAIL, null, HttpStatus.OK);
 		}
 		return SingleResult.makeResponseEntity(0, "최근 commit입니다.", CommonResponse.SUCC, lastCommit, HttpStatus.OK);
 	}
@@ -80,7 +73,7 @@ public class CommitController {
 		
 		List<Commit> lastCommit = repositoryService.getLastCommit(team.getGithubRepoUrl(), listNum);
 		if(lastCommit == null) {
-			return SingleResult.makeResponseEntity(-1, "commit이 없습니다.", CommonResponse.FAIL, null, HttpStatus.BAD_REQUEST);
+			return SingleResult.makeResponseEntity(-1, "commit이 없습니다.", CommonResponse.FAIL, null, HttpStatus.OK);
 		}
 		return SingleResult.makeResponseEntity(0, "최근 commit입니다.", CommonResponse.SUCC, lastCommit, HttpStatus.OK);
 	}
@@ -94,7 +87,7 @@ public class CommitController {
 		
 		Commit lastCommit = repositoryService.getLastCommit(url);
 		if(lastCommit == null) {
-			return SingleResult.makeResponseEntity(-1, "commit이 없습니다.", CommonResponse.FAIL, null, HttpStatus.BAD_REQUEST);
+			return SingleResult.makeResponseEntity(-1, "commit이 없습니다.", CommonResponse.FAIL, null, HttpStatus.OK);
 		}
 		return SingleResult.makeResponseEntity(0, "최근 commit입니다.", CommonResponse.SUCC, lastCommit, HttpStatus.OK);
 	}
@@ -109,7 +102,7 @@ public class CommitController {
 		
 		List<Commit> lastCommit = repositoryService.getLastCommit(url, listNum);
 		if(lastCommit == null) {
-			return SingleResult.makeResponseEntity(-1, "commit이 없습니다.", CommonResponse.FAIL, null, HttpStatus.BAD_REQUEST);
+			return SingleResult.makeResponseEntity(-1, "commit이 없습니다.", CommonResponse.FAIL, null, HttpStatus.OK);
 		}
 		return SingleResult.makeResponseEntity(0, "최근 commit입니다.", CommonResponse.SUCC, lastCommit, HttpStatus.OK);
 	}
@@ -126,7 +119,7 @@ public class CommitController {
 		}
 		HashMap<String, Integer> res = repositoryService.getUsersCommits(team.getGithubRepoUrl());
 		if(res == null) {
-			return SingleResult.makeResponseEntity(-1, "commit이 없습니다.", CommonResponse.FAIL, null, HttpStatus.BAD_REQUEST);
+			return SingleResult.makeResponseEntity(-1, "commit이 없습니다.", CommonResponse.FAIL, null, HttpStatus.OK);
 		}
 		return SingleResult.makeResponseEntity(0, "{usr , cnt} List 입니다.", CommonResponse.SUCC, res, HttpStatus.OK);
 	}
@@ -139,7 +132,7 @@ public class CommitController {
 		logger.info("================getUsersCommitsByUrl================\t" + new Date());
 		HashMap<String, Integer> res = repositoryService.getUsersCommits(url);
 		if(res == null) {
-			return SingleResult.makeResponseEntity(-1, "commit이 없습니다.", CommonResponse.FAIL, null, HttpStatus.BAD_REQUEST);
+			return SingleResult.makeResponseEntity(-1, "commit이 없습니다.", CommonResponse.FAIL, null, HttpStatus.OK);
 		}
 		return SingleResult.makeResponseEntity(0, "{usr , cnt} List 입니다.", CommonResponse.SUCC, res, HttpStatus.OK);
 	}
