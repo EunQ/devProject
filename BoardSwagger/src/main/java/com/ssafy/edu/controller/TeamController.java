@@ -11,6 +11,8 @@ import org.jsoup.internal.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
@@ -570,10 +572,11 @@ public class TeamController {
 	
 	@ApiOperation(value="해당 boardId에 대한 팀들 apply의 정보 출력", notes="해당 공모전 ID에 대한 신청한 팀들의 apply 정보를 부른다.")
 	@GetMapping(value = "/apply/{boardId}")
-	public ResponseEntity<List<Apply>> findAllApplyByBoardId(@ApiParam(value = "해당 공모전 id", required = true) @PathVariable int boardId) {
+	@Cacheable(value="applys", key = "#boardId")
+	public List<Apply> findAllApplyByBoardId(@ApiParam(value = "해당 공모전 id", required = true) @PathVariable int boardId) {
 		
 		logger.info("-----------------------findAllApplyByBoardId--------------------------");
-		return new ResponseEntity<>(applyRepo.findAllByBoardId(boardId), HttpStatus.OK);
+		return applyRepo.findAllByBoardId(boardId);
 	}
 	
 	@ApiOperation(value = "repository의 readme 추출")
